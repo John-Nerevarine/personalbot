@@ -1,10 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Global
-backButton = InlineKeyboardButton('Назад', callback_data='back')
-cancelButton = InlineKeyboardButton('Отменить', callback_data='back')
-confirmButton = InlineKeyboardButton('Подтвердить', callback_data='confirm')
-mMenuButton = InlineKeyboardButton('Главное меню', callback_data='mMenu')
+backButton = InlineKeyboardButton('<< Назад', callback_data='back')
+cancelButton = InlineKeyboardButton('<< Отменить', callback_data='back')
+confirmButton = InlineKeyboardButton('>> Подтвердить <<', callback_data='confirm')
+mMenuButton = InlineKeyboardButton('<< Главное меню >>', callback_data='mMenu')
 
 backKeyboard = InlineKeyboardMarkup().add(backButton)
 
@@ -43,10 +43,10 @@ removeExerciseButton = InlineKeyboardButton('Удалить упражнение
 trainSettingsKeyboard = InlineKeyboardMarkup()
 trainSettingsKeyboard.add(showTrainingsButton)
 trainSettingsKeyboard.add(addTrainButton)
-trainSettingsKeyboard.add(removeTrainButton)
+trainSettingsKeyboard.insert(removeTrainButton)
 trainSettingsKeyboard.add(showExerciseButton)
 trainSettingsKeyboard.add(addExerciseButton)
-trainSettingsKeyboard.add(removeExerciseButton)
+trainSettingsKeyboard.insert(removeExerciseButton)
 trainSettingsKeyboard.add(backButton)
 trainSettingsKeyboard.add(mMenuButton)
 

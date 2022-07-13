@@ -8,7 +8,7 @@ async def callbackEmergencyStart(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     try:
-        m = await bot.edit_message_text('<b>-=Главное меню=-</b>',
+        m = await bot.edit_message_text('<b>==Главное меню==</b>',
         callback_query.from_user.id, callback_query.message.message_id,
             reply_markup=kb.mMenuKeyboard)
     except Exception as e:
@@ -16,7 +16,7 @@ async def callbackEmergencyStart(callback_query: types.CallbackQuery,
             m = callback_query.message
         else:
             m = await bot.send_message(callback_query.from_user.id,
-                '<b>-=Главное меню=-</b>',
+                '<b>==Главное меню==</b>',
                 reply_markup=kb.mMenuKeyboard)
     await state.finish()
     await MainMenu.start.set()

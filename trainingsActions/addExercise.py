@@ -11,7 +11,7 @@ async def callbackAddExercise(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n\nВведите название упражнения:',
+    await bot.edit_message_text('<b>==Добавить упражнение==</b>\n\nВведите название упражнения:',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
     await Trainings.addExercise.set()
@@ -24,7 +24,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
         if data['stage'] == 'name':
             data['stage'] = 'type'
             data['name'] = message.text
-            await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+            await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
                 f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n\n'+
                 'Выберите тип упражнения:',
                 message.from_user.id, data['message_id'],
@@ -35,14 +35,14 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
             data['weight'] = message.text 
             if tr.checkExercise(message.from_user.id, data['name'], data['type'], data['weight']):
                 data['stage'] == 'error'
-                await bot.edit_message_text('<b>-=Упражнение уже существует=-</b>\n'+
+                await bot.edit_message_text('<b>==Упражнение уже существует==</b>\n'+
                 'Упражнение такого типа с таким названием и весом уже существует.\n'+
                 'Введите другие параметры.',
                 message.from_user.id, data['message_id'],
                 reply_markup={"inline_keyboard": [[{"text": "Отменить", "callback_data": "back"}],
                 [{"text": "Начать заново", "callback_data": "exeAdd"}]]})
             else:
-                await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+                await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
                     f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
                     f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
                     f'<b>Вес:</b> <i>{data["weight"]}</i>\n\n'+
@@ -56,7 +56,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
             if len(sets) > 1:
                 data['stage'] = 'rest'
                 data['sets'] = sets
-                await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+                await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
                     f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
                     f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
                     f'<b>Вес:</b> <i>{data["weight"]}</i>\n'+
@@ -69,7 +69,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
                 data['stage'] = 'confirm'
                 data['sets'] = sets
                 data['rest'] = False
-                await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+                await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
                     f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
                     f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
                     f'<b>Вес:</b> <i>{data["weight"]}</i>\n'+
@@ -83,7 +83,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
             if (len(time) == 1):
                 data['stage'] = 'confirm'
                 data['rest'] = time[0]
-                await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+                await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
                     f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
                     f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
                     f'<b>Вес:</b> <i>{data["weight"]}</i>\n'+
@@ -99,7 +99,7 @@ async def callbackAddExerciseType(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'weight'
         data['type'] = callback_query.data
-        await bot.edit_message_text('<b>-=Добавить упражнение=-</b>\n'+
+        await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
             f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
             f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n\n'+
             'Введите снаряд и его вес:',
@@ -110,10 +110,10 @@ async def callbackAddExerciseConfirm(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
-        tr.addTraining(callback_query.from_user.id, data['name'], data['type'], data['weight'],
+        tr.addExercise(callback_query.from_user.id, data['name'], data['type'], data['weight'],
             data['sets'], data['rest'])
         data['stage'] = ''
-        await bot.edit_message_text( '<b>-=Упражнение добавлено=-</b>\n'+
+        await bot.edit_message_text( '<b>==Упражнение добавлено==</b>\n'+
             f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
             f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
             f'<b>Вес:</b> <i>{data["weight"]}</i>\n'+

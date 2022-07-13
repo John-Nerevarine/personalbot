@@ -14,3 +14,7 @@ class MainMenu(StatesGroup):
 class Trainings(StatesGroup):
     main = State()
     addExercise = State()
+    removeExercise = State()
+    removeExerciseName = State()
+    removeExerciseType = State()
+    removeExerciseWeight = State()

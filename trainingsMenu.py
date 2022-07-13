@@ -12,7 +12,7 @@ async def callbackTrainingsMain(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>-=Физкультура=-</b>',
+    await bot.edit_message_text('<b>==Физкультура==</b>',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.trainMainKeyboard)
     await Trainings.main.set()
@@ -22,7 +22,7 @@ async def callbackTrainingsSettings(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>-=Настройки тренировок=-</b>',
+    await bot.edit_message_text('<b>==Настройки тренировок==</b>',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.trainSettingsKeyboard)
 

@@ -7,7 +7,7 @@ from createBot import MainMenu, bot
 # Start
 async def commandStart(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
-    m = await bot.send_message(message.from_user.id, '<b>-=Главное меню=-</b>',
+    m = await bot.send_message(message.from_user.id, '<b>==Главное меню==</b>',
             reply_markup=kb.mMenuKeyboard)
     await state.finish()
     await MainMenu.start.set()
@@ -21,7 +21,7 @@ async def commandStart(message: types.Message, state: FSMContext):
 async def callbackMainMenu(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>-=Главное меню=-</b>',
+    await bot.edit_message_text('<b>==Главное меню==</b>',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.mMenuKeyboard)
     await state.finish()
