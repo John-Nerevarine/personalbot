@@ -113,6 +113,7 @@ async def callbackAddExerciseConfirm(callback_query: types.CallbackQuery,
         tr.addExercise(callback_query.from_user.id, data['name'], data['type'], data['weight'],
             data['sets'], data['rest'])
         data['stage'] = ''
+        data['exercises'] = exercises = tr.getExerciseList(callback_query.from_user.id)
         await bot.edit_message_text( '<b>==Упражнение добавлено==</b>\n'+
             f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
             f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
@@ -122,9 +123,33 @@ async def callbackAddExerciseConfirm(callback_query: types.CallbackQuery,
             callback_query.from_user.id, callback_query.message.message_id,
             reply_markup=kb.backKeyboard)
 
+    keyboard = {"inline_keyboard": []}
+
+    if not(exercises):
+        keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
+        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
+        keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
+
+        async with state.proxy() as data:
+            data['backTexts'][-1] = '<b>==Нет упражнений==</b>'
+            data['backKeyboards'][-1] = keyboard
+
+    else:
+        keyboard['inline_keyboard'].append([{'text': '>> Изменить упражнение', 'callback_data': 'exeEdit'}])
+        keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
+        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
+        keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
+        
+        exercisesListText = ''
+        for v in exercises:
+            exercisesListText += f'{v[0]} на {"повторы" if v[1] == "reps" else "время"} с весом: {v[2]}\n'
+
+        async with state.proxy() as data:
+            data['backTexts'][-1] = '<b>==Список упражнений==</b>\n\n'+exercisesListText
+            data['backKeyboards'][-1] = keyboard
+            
 def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackAddExercise, lambda c: c.data == 'exeAdd', state=Trainings.main)
-    dp.register_callback_query_handler(callbackAddExercise, lambda c: c.data == 'exeAdd', state=Trainings.addExercise)
     dp.register_callback_query_handler(callbackAddExerciseType, lambda c: c.data == 'reps', state=Trainings.addExercise)
     dp.register_callback_query_handler(callbackAddExerciseType, lambda c: c.data == 'time', state=Trainings.addExercise)
     dp.register_callback_query_handler(callbackAddExerciseConfirm, lambda c: c.data == 'confirm', state=Trainings.addExercise)

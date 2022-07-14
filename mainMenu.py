@@ -21,7 +21,7 @@ async def commandStart(message: types.Message, state: FSMContext):
 async def callbackMainMenu(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>==Главное меню==</b>',
+    m = await bot.edit_message_text('<b>==Главное меню==</b>',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.mMenuKeyboard)
     await state.finish()
@@ -30,6 +30,7 @@ async def callbackMainMenu(callback_query: types.CallbackQuery,
         data['backStates'] = []
         data['backTexts'] = []
         data['backKeyboards'] = []
+        data['message_id'] = m.message_id
 
 # Back
 async def getBackData(state:  FSMContext, message):

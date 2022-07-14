@@ -1,2 +1,2 @@
 from . import addExercise
-from . import removeExercise
+from . import editExercise

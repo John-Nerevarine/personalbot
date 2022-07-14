@@ -22,6 +22,7 @@ def checkExercise(user_id, name, exeType, weight):
 		return True
 	else:
 		return False
+
 # Добавить упражение
 def addExercise(user_id, name, exeType, weight, sets, rest):
 	sets = json.dumps(sets)
@@ -32,7 +33,7 @@ def addExercise(user_id, name, exeType, weight, sets, rest):
 
 # Получить список упражнений
 def getExerciseList(user_id):
-	db.cur.execute('''SELECT name, type, weight FROM exercises WHERE user_id = ?''', (user_id,))
+	db.cur.execute('''SELECT name, type, weight, sets, rest, id FROM exercises WHERE user_id = ?''', (user_id,))
 	trainings =  db.cur.fetchall()
 	if trainings:
 		for i, v in enumerate(trainings):
@@ -41,5 +42,26 @@ def getExerciseList(user_id):
 	else:
 		return False
 
-def removeExercise(name, exeType, weight):
-	print('Deleted')
+# Удалить упражнение
+def removeExercise(user_id, name, exeType, weight):
+	db.cur.execute('''DELETE FROM exercises
+		WHERE user_id = ? AND name = ? AND type = ? AND weight = ?''',
+		(user_id, name, exeType, weight))
+	db.base.commit()
+
+# Изменить один параметр упражнения
+def editExercise(exeId, param, new):
+	db.cur.execute(f'UPDATE exercises SET {param} = ? WHERE id = ?',
+		(new, exeId))
+	db.base.commit()
+
+
+
+
+
+
+
+
+
+
+
