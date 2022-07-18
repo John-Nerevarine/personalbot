@@ -5,6 +5,7 @@ import trainingDataBase as tr
 from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
+import json
 
 # Show exercise
 async def callbackShowExercises(callback_query: types.CallbackQuery,
@@ -145,9 +146,9 @@ async def callbackEditExercise(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     async with state.proxy() as data:
         i = 0
-        while (data['name'] != data['exercises'][i][0] and
-            data['type'] != data['exercises'][i][1] and
-            data['weight'] != data['exercises'][i][2]):
+        while not(data['name'] == data['exercises'][i][0] and
+            data['type'] == data['exercises'][i][1] and
+            data['weight'] == data['exercises'][i][2]):
             i += 1
         else:
             data['sets'] = data['exercises'][i][3]
@@ -235,8 +236,59 @@ async def callbackEditExerciseNewRest(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'rest'
 
+async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
+    async with state.proxy() as data:
+        await bot.edit_message_text('<b>==Упражнение изменено!==</b>\n\n'+
+            f"<b>Название упражнения:</b> <i>{data['name']}</i>\n"+
+            f"<b>Тип упражнения:</b> <i>{'Повторы' if data['type']=='reps' else 'Время'}</i>\n"+
+            f"<b>Вес:</b> <i>{data['weight']}</i>\n"+
+            f"<b>Подходы:</b> <i>{data['sets']}</i>\n"+
+            f"<b>Время отдыха между подходами:</b> <i>{data['rest']}</i>.\n\n"+
+            'Что изменить?',
+            user_id, data['message_id'],
+            reply_markup=keyboard)
+
+async def callbackEditExerciseNewTypeSet(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    
+    await bot.answer_callback_query(callback_query.id)
+    async with state.proxy() as data:
+        newExercise = data['exercises'][data['index']].copy()
+        newExercise[1] = callback_query.data
+        if newExercise in data['exercises']:
+            data['temp'] += 1
+            await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
+                'Такое упражнение уже есть. Выберите другой тип' + ('!' * data['temp']),
+                callback_query.from_user.id, data['message_id'],
+                reply_markup=kb.cancelKeyboard)
+            return
+        else:
+            tr.editExercise(data['exeId'], 'type', callback_query.data)
+            if callback_query.data == 'reps':
+                data['backTexts'][-2] = data['backTexts'][-2].replace('Тип: По времени', 'Тип: Повторы')
+                data['backTexts'][-3] = data['backTexts'][-3].replace(data['name']+
+                    ' на время с весом: '+ data['weight'], data['name'] +
+                    ' на повторы с весом: '+ data['weight'])
+
+            else:
+                data['backTexts'][-2] = data['backTexts'][-2].replace('Тип: Повторы', 'Тип: По времени')
+                data['backTexts'][-3] = data['backTexts'][-3].replace(data['name']+
+                    ' на повторы с весом: '+ data['weight'], data['name'] +
+                    ' на время с весом: '+ data['weight'])
+
+            data['type'] = callback_query.data
+            data['exercises'][data['index']] = newExercise
+
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+
+    await showEditedExerciseMessage(callback_query.from_user.id, kb.exerciseEditKeyboard, state)
+
 async def commandsEditExercise(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
+    hasChanges = False
+
     async with state.proxy() as data:
         if data['stage'] == 'name':
             newExercise = data['exercises'][data['index']].copy()
@@ -247,26 +299,71 @@ async def commandsEditExercise(message: types.Message, state: FSMContext):
                     'Такое упражнение уже есть. Введите новое имя' + ('!' * data['temp']),
                     message.from_user.id, data['message_id'],
                     reply_markup=kb.cancelKeyboard)
+
             else:
                 tr.editExercise(data['exeId'], 'name', message.text)
-                for i, v in enumerate(data['backTexts']):
-                    data['backTexts'][i] = v.replace(data['name'], message.text)
+                data['backTexts'][-2] = data['backTexts'][-2].replace('Упражнение: '+ data['name'],
+                    'Упражнение: '+ message.text)
+                data['backTexts'][-3] = data['backTexts'][-3].replace(data['name'] +
+                    (' на время с весом: ' if data['type'] == 'time' else ' на повторы с весом: ') +
+                    data['weight'], message.text +
+                    (' на время с весом: ' if data['type'] == 'time' else ' на повторы с весом: ')+
+                    data['weight'])
 
                 data['name'] = message.text
                 data['exercises'][data['index']] = newExercise
-                await bot.edit_message_text('<b>==Упражнение изменено!==</b>\n\n'+
-                    f"<b>Название упражнения:</b> <i>{data['name']}</i>\n"+
-                    f"<b>Тип упражнения:</b> <i>{'Повторы' if data['type']=='reps' else 'Время'}</i>\n"+
-                    f"<b>Вес:</b> <i>{data['weight']}</i>\n"+
-                    f"<b>Подходы:</b> <i>{data['sets']}</i>\n"+
-                    f"<b>Время отдыха между подходами:</b> <i>{data['rest']}</i>.\n\n"+
-                    'Что изменить?',
-                    message.from_user.id, data['message_id'],
-                    reply_markup=kb.exerciseEditKeyboard)
-
                 data['backTexts'] = data['backTexts'][:-1]
                 data['backKeyboards'] = data['backKeyboards'][:-1]
-                data['backStates'] = data['backStates'][:-1]                    
+                data['backStates'] = data['backStates'][:-1]
+                hasChanges = True
+                
+        elif data['stage'] == 'weight':
+            newExercise = data['exercises'][data['index']].copy()
+            newExercise[2] = message.text 
+            if newExercise in data['exercises']:
+                data['temp'] += 1
+                await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
+                    'Такое упражнение уже есть. Введите новый вес' + ('!' * data['temp']),
+                    message.from_user.id, data['message_id'],
+                    reply_markup=kb.cancelKeyboard)
+
+            else:
+                tr.editExercise(data['exeId'], 'weight', message.text)
+                data['backTexts'][-2] = data['backTexts'][-2].replace('Вес: '+ data['weight'],
+                    'Вес: ' + message.text)
+                data['backTexts'][-3] = data['backTexts'][-3].replace(data['name'] +
+                    (' на время с весом: ' if data['type'] == 'time' else ' на повторы с весом: ') +
+                    data['weight'], data['name'] +
+                    (' на время с весом: ' if data['type'] == 'time' else ' на повторы с весом: ') +
+                    message.text)
+
+                data['weight'] = message.text
+                data['exercises'][data['index']] = newExercise
+                data['backTexts'] = data['backTexts'][:-1]
+                data['backKeyboards'] = data['backKeyboards'][:-1]
+                data['backStates'] = data['backStates'][:-1]
+                hasChanges = True                
+
+        elif data['stage'] == 'sets':
+            data['sets'] = json.dumps(tr.setsProcessing(message.text))
+            tr.editExercise(data['exeId'], 'sets', data['sets'])
+            data['exercises'][data['index']][3] = data['sets']
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+            hasChanges = True
+
+        elif data['stage'] == 'rest':
+            data['rest'] = tr.setsProcessing(message.text)[0]
+            tr.editExercise(data['exeId'], 'rest', data['rest'])
+            data['exercises'][data['index']][4] = data['sets']
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+            hasChanges = True
+
+    if hasChanges:
+        await showEditedExerciseMessage(message.from_user.id, kb.exerciseEditKeyboard, state)
 
 def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackShowExercises, lambda c: c.data == 'exeEdit', state=Trainings.main)
@@ -276,4 +373,10 @@ def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackEditExerciseRemove, lambda c: c.data == 'remove', state=Trainings.main)
     dp.register_callback_query_handler(callbackEditExercise, lambda c: c.data == 'edit', state=Trainings.main)
     dp.register_callback_query_handler(callbackEditExerciseNewName, lambda c: c.data == 'name', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewType, lambda c: c.data == 'type', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewWeight, lambda c: c.data == 'weight', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewSets, lambda c: c.data == 'sets', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewRest, lambda c: c.data == 'rest', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewTypeSet, lambda c: c.data == 'reps', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewTypeSet, lambda c: c.data == 'time', state=Trainings.editExercise)
     dp.register_message_handler(commandsEditExercise, state=Trainings.editExercise)
