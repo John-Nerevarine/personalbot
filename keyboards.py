@@ -33,8 +33,8 @@ trainMainKeyboard.add(trainChoiceButton)
 trainMainKeyboard.add(trainSettingsButton)
 trainMainKeyboard.add(backButton)
 
-#Train Settings
-showTrainingsButton = InlineKeyboardButton('Тренировки', callback_data='trainShow')
+# Train Settings
+showTrainingsButton = InlineKeyboardButton('Тренировки', callback_data='trainsShow')
 showExerciseButton = InlineKeyboardButton('Упражнения', callback_data='exeShow')
 trainSettingsKeyboard = InlineKeyboardMarkup()
 trainSettingsKeyboard.add(showTrainingsButton)
@@ -42,13 +42,22 @@ trainSettingsKeyboard.insert(showExerciseButton)
 trainSettingsKeyboard.add(backButton)
 trainSettingsKeyboard.add(mMenuButton)
 
-# Exercise Add
+# Exercise Type
 repsButton = InlineKeyboardButton('Повторы', callback_data='reps')
 timeButton = InlineKeyboardButton('Время', callback_data='time')
 exerciseTypeKeyboard = InlineKeyboardMarkup()
 exerciseTypeKeyboard.add(repsButton)
 exerciseTypeKeyboard.add(timeButton)
 exerciseTypeKeyboard.add(cancelButton)
+
+# Training Priority
+highPriorityTrainButton = InlineKeyboardButton('Высокий', callback_data='Высокий')
+lowPriorityTrainButton = InlineKeyboardButton('Низкий', callback_data='Низкий')
+trainPriorityKeyboard = InlineKeyboardMarkup()
+trainPriorityKeyboard.add(highPriorityTrainButton)
+trainPriorityKeyboard.add(lowPriorityTrainButton)
+trainPriorityKeyboard.add(cancelButton)
+
 
 # Exercise Edit Choice
 nameButton = InlineKeyboardButton('Название', callback_data='name')

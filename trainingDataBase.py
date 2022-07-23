@@ -34,11 +34,11 @@ def addExercise(user_id, name, exeType, weight, sets, rest):
 # Получить список упражнений
 def getExerciseList(user_id):
 	db.cur.execute('''SELECT name, type, weight, sets, rest, id FROM exercises WHERE user_id = ?''', (user_id,))
-	trainings =  db.cur.fetchall()
-	if trainings:
-		for i, v in enumerate(trainings):
-			trainings[i] = list(v)
-		return trainings
+	exercises =  db.cur.fetchall()
+	if exercises:
+		for i, v in enumerate(exercises):
+			exercises[i] = list(v)
+		return exercises
 	else:
 		return False
 
@@ -55,6 +55,30 @@ def editExercise(exeId, param, new):
 		(new, exeId))
 	db.base.commit()
 
+def getTrainingsList(user_id):
+	db.cur.execute('''SELECT name, priority, rest, id FROM trainings WHERE user_id = ?''', (user_id,))
+	trainings =  db.cur.fetchall()
+	if trainings:
+		for i, v in enumerate(trainings):
+			trainings[i] = list(v)
+		return trainings
+	else:
+		return False
+
+
+def isTrainingExist(user_id, name):
+	db.cur.execute('''SELECT name FROM trainings WHERE
+		user_id = ? AND name = ?''', (user_id, name))
+	if db.cur.fetchone():
+		return True
+	else:
+		return False
+
+def addTraining(user_id, name, priority, rest):
+	db.cur.execute('''INSERT INTO trainings
+		(user_id, name, priority, rest)
+		VALUES(?, ?, ?, ?)''', (user_id, name, priority, rest))
+	db.base.commit()
 
 
 

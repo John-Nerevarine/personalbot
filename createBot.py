@@ -13,9 +13,10 @@ class MainMenu(StatesGroup):
 
 class Trainings(StatesGroup):
     main = State()
-    showExercises = State()
+    #showExercises = State()
     addExercise = State()
     editExercise = State()
     editExerciseName = State()
     editExerciseType = State()
     editExerciseWeight = State()
+    addTrain = State()
