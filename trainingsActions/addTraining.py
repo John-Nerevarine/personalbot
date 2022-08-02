@@ -76,18 +76,8 @@ async def callbackAddTrainingConfirm(callback_query: types.CallbackQuery,
 
     keyboard = {"inline_keyboard": []}
 
-    '''if not(exercises):
-        keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
-
-        async with state.proxy() as data:
-            data['backTexts'][-1] = '<b>==Нет упражнений==</b>'
-            data['backKeyboards'][-1] = keyboard
-
-    else:'''
-    keyboard['inline_keyboard'].append([{'text': '>> Изменить упражнение', 'callback_data': 'exeEdit'}])
-    keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
+    keyboard['inline_keyboard'].append([{'text': '>> Изменить тренировку', 'callback_data': 'trainEdit'}])
+    keyboard['inline_keyboard'].append([{'text': '>> Добавить тренировку', 'callback_data': 'trainAdd'}])
     keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
     keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
     

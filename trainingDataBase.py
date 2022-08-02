@@ -65,7 +65,6 @@ def getTrainingsList(user_id):
 	else:
 		return False
 
-
 def isTrainingExist(user_id, name):
 	db.cur.execute('''SELECT name FROM trainings WHERE
 		user_id = ? AND name = ?''', (user_id, name))
@@ -80,6 +79,13 @@ def addTraining(user_id, name, priority, rest):
 		VALUES(?, ?, ?, ?)''', (user_id, name, priority, rest))
 	db.base.commit()
 
+def getExercisesInTrain(train_id):
+	return None
+
+def editTraining(trainId, param, new):
+	db.cur.execute(f'UPDATE trainings SET {param} = ? WHERE id = ?',
+		(new, trainId))
+	db.base.commit()
 
 
 

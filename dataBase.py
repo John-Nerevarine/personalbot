@@ -29,7 +29,7 @@ def sqlStart ():
 
         base.execute('''CREATE TABLE IF NOT EXISTS trainings_consist(
             training_id INTEGER,
-            exercise_id INTEGER
+            exercise_name TEXT
             )''')
 
         base.execute('''CREATE TABLE IF NOT EXISTS days(

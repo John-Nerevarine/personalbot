@@ -124,17 +124,6 @@ async def callbackAddExerciseConfirm(callback_query: types.CallbackQuery,
             reply_markup=kb.backKeyboard)
 
     keyboard = {"inline_keyboard": []}
-
-    '''if not(exercises):
-        keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
-
-        async with state.proxy() as data:
-            data['backTexts'][-1] = '<b>==Нет упражнений==</b>'
-            data['backKeyboards'][-1] = keyboard
-
-    else:'''
     keyboard['inline_keyboard'].append([{'text': '>> Изменить упражнение', 'callback_data': 'exeEdit'}])
     keyboard['inline_keyboard'].append([{'text': '>> Добавить упражнение', 'callback_data': 'exeAdd'}])
     keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])

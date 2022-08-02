@@ -16,12 +16,12 @@ async def callbackShowExercises(callback_query: types.CallbackQuery,
         exercises = data['exercises']
 
     names = []
-    for i, v in  enumerate(exercises):
+    for v in exercises:
         if v[0] not in names:
             names.append(v[0])
 
     keyboard = {"inline_keyboard": []}
-    for i, v in enumerate(names):
+    for v in names:
         keyboard['inline_keyboard'].append([{'text': v, 'callback_data': v}])
     keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
 
@@ -30,8 +30,6 @@ async def callbackShowExercises(callback_query: types.CallbackQuery,
         reply_markup=keyboard)
 
     await Trainings.editExerciseName.set()
-    async with state.proxy() as data:
-        data['exercises'] = exercises
 
 async def callbackEditExerciseName(callback_query: types.CallbackQuery,
                                      state: FSMContext):
@@ -41,12 +39,12 @@ async def callbackEditExerciseName(callback_query: types.CallbackQuery,
         data['name'] = name = callback_query.data
 
     types = []
-    for i, v in  enumerate(exercises):
+    for v in exercises:
         if v[0] == name and v[1] not in types:
             types.append(v[1])
 
     keyboard = {"inline_keyboard": []}
-    for i, v in enumerate(types):
+    for v in types:
         keyboard['inline_keyboard'].append([{'text': ('Повторы' if v == 'reps' else 'По времени'),
         'callback_data': v}])
     keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
@@ -66,12 +64,12 @@ async def callbackEditExerciseType(callback_query: types.CallbackQuery,
         name = data['name']
 
     weights = []
-    for i, v in  enumerate(exercises):
+    for v in exercises:
         if v[0] == name and v[1] == exeType and v[2] not in weights:
             weights.append(v[2])
 
     keyboard = {"inline_keyboard": []}
-    for i, v in enumerate(weights):
+    for v in weights:
         keyboard['inline_keyboard'].append([{'text': v, 'callback_data': v}])
     keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
 
@@ -247,6 +245,7 @@ async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
             'Что изменить?',
             user_id, data['message_id'],
             reply_markup=keyboard)
+        data['stage'] = 'choice'
 
 async def callbackEditExerciseNewTypeSet(callback_query: types.CallbackQuery,
                                      state: FSMContext):

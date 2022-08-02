@@ -20,3 +20,7 @@ class Trainings(StatesGroup):
     editExerciseType = State()
     editExerciseWeight = State()
     addTrain = State()
+    editTrainingSetName = State()
+    editTrainingSetPriority = State()
+    editTrainingAddExe = State()
+    editTraining = State()
