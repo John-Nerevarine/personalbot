@@ -47,7 +47,7 @@ async def callbackEditTraining(callback_query: types.CallbackQuery,
     exercisesText = ''
     if exercisesInTrain:
         for v in exercisesInTrain:
-            exercisesText += str(v[0])+'\n'
+            exercisesText += v +'\n'
         keyboard['inline_keyboard'].append([{'text': 'Удалить упражнение', 'callback_data': 'removeExe'}])
     else:
     	exercisesText = 'В тренировке нет упражнений.'
@@ -60,8 +60,7 @@ async def callbackEditTraining(callback_query: types.CallbackQuery,
         f'<b>Название тренировки:</b> <i>{name}</i>\n'+
         f'<b>Приоритет тренировки:</b> <i>{priority}</i>\n'+
         f'<b>Время отдыха между упражнениями:</b> <i>{rest}</i>\n'+
-        f'<b>Упражнения:\n</b> <i>{exercisesText}</i>\n\n'+
-        'Что изменить?',
+        f'<b>Упражнения:</b>\n<i>{exercisesText}</i>\n',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=keyboard)
 
@@ -120,7 +119,7 @@ async def callbackEditTrainingRest(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'rest'
 
-'''async def callbackEditTrainingAddExe(callback_query: types.CallbackQuery,
+async def callbackEditTrainingAddExe(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
@@ -130,7 +129,6 @@ async def callbackEditTrainingRest(callback_query: types.CallbackQuery,
 
     if not(exercises):
         keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
 
         await bot.edit_message_text('<b>==Нет упражнений==</b>',
             callback_query.from_user.id, callback_query.message.message_id,
@@ -146,14 +144,37 @@ async def callbackEditTrainingRest(callback_query: types.CallbackQuery,
         keyboard['inline_keyboard'].append([{'text': v, 'callback_data': v}])
 
     keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
-    keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
 
     await bot.edit_message_text('<b>==Изменить тренировку==</b>\n\n'+
         'Ввыберите упражнение, которое хотите добавить:',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=keyboard)
 
-    await Trainings.editTrainingAddExe.set()'''
+    await Trainings.editTrainingAddExe.set()
+
+async def callbackEditTrainingAddExeChoice(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+    async with state.proxy() as data:
+        if callback_query.data in data['exercisesInTrain']:
+            await bot.edit_message_text('<b>==Это упражнение уже есть в тренировке==</b>\n\n',
+                callback_query.from_user.id, callback_query.message.message_id,
+                reply_markup=kb.backKeyboard)
+        else:
+            tr.addExerciseInTrain(data['trainings'][data['i']][3], callback_query.data)
+            data['exercisesInTrain'].append(callback_query.data)
+
+            await bot.edit_message_text('<b>==Упражнение добавлено в тренировку.==</b>',
+                callback_query.from_user.id, callback_query.message.message_id,
+                reply_markup=kb.backKeyboard)
+
+            if 'В тренировке нет упражнений.' in data['backTexts'][-2]:
+                data['backTexts'][-2] = data['backTexts'][-2].replace(
+                    'В тренировке нет упражнений.',
+                    f'<i>{callback_query.data}</i>')
+            else:
+                data['backTexts'][-2] += f'\n<i>{callback_query.data}</i>'
 
 async def showEditedTrainingMessage(user_id, state: FSMContext):
     async with state.proxy() as data:
@@ -178,8 +199,7 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
             f'<b>Название тренировки:</b> <i>{data["trainings"][data["i"]][0]}</i>\n'+
             f'<b>Приоритет тренировки:</b> <i>{data["trainings"][data["i"]][1]}</i>\n'+
             f'<b>Время отдыха между упражнениями:</b> <i>{data["trainings"][data["i"]][2]}</i>\n'+
-            f'<b>Упражнения:\n</b> <i>{exercisesText}</i>\n\n'+
-            'Что изменить?',
+            f'<b>Упражнения:</b>\n<i>{exercisesText}</i>',
             user_id, data['message_id'],
             reply_markup=keyboard)
 
@@ -229,4 +249,6 @@ def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackEditTrainingPriority, lambda c: c.data == 'editPriority', state=Trainings.editTraining)
     dp.register_callback_query_handler(callbackEditTrainingPrioritySet, lambda c: c.data != 'back', state=Trainings.editTrainingSetPriority)
     dp.register_callback_query_handler(callbackEditTrainingRest, lambda c: c.data == 'editRest', state=Trainings.editTraining)
+    dp.register_callback_query_handler(callbackEditTrainingAddExe, lambda c: c.data == 'addExe', state=Trainings.editTraining)
+    dp.register_callback_query_handler(callbackEditTrainingAddExeChoice, lambda c: c.data != 'back', state=Trainings.editTrainingAddExe)
     dp.register_message_handler(commandsEditTraining, state=Trainings.editTraining)

@@ -80,11 +80,24 @@ def addTraining(user_id, name, priority, rest):
 	db.base.commit()
 
 def getExercisesInTrain(train_id):
-	return None
+	db.cur.execute('''SELECT exercise_name FROM trainings_consist WHERE
+		training_id = ?''', (train_id,))
+	select = db.cur.fetchall()
+	ret = []
+	for i in select:
+		ret.append(i[0])
+	return ret
+
 
 def editTraining(trainId, param, new):
 	db.cur.execute(f'UPDATE trainings SET {param} = ? WHERE id = ?',
 		(new, trainId))
+	db.base.commit()
+
+def addExerciseInTrain(train, exe):
+	db.cur.execute('''INSERT INTO trainings_consist
+		(training_id, exercise_name)
+		VALUES(?, ?)''', (train, exe))
 	db.base.commit()
 
 
