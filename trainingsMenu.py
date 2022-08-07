@@ -1,11 +1,11 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 import keyboards as kb
-import trainingDataBase as tr
+from trainingsActions import trainingDataBase as tr
+import trainingsActions
 from createBot import MainMenu, Trainings
 from createBot import bot
 from mainMenu import getBackData
-import trainingsActions
 
 # Trainings menu
 async def callbackTrainingsMain(callback_query: types.CallbackQuery,
