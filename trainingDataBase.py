@@ -101,7 +101,20 @@ def addExerciseInTrain(train, exe):
 	db.base.commit()
 
 
+def removeExerciseFromTrain(train_id, exe):
+	db.cur.execute('''DELETE FROM trainings_consist
+		WHERE training_id = ? AND exercise_name = ?''',
+		(train_id, exe))
+	db.base.commit()
 
+def removeTraining(train_id):
+	db.cur.execute('''DELETE FROM trainings_consist
+		WHERE training_id = ?''',
+		(train_id,))
+	db.cur.execute('''DELETE FROM trainings
+		WHERE id = ?''',
+		(train_id,))
+	db.base.commit()
 
 
 

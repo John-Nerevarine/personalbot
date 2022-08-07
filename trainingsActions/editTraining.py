@@ -5,7 +5,6 @@ import trainingDataBase as tr
 from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
-import json
 
 # Show exercise
 async def callbackShowTrainings(callback_query: types.CallbackQuery,
@@ -128,11 +127,10 @@ async def callbackEditTrainingAddExe(callback_query: types.CallbackQuery,
     keyboard = {"inline_keyboard": []}
 
     if not(exercises):
-        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
 
         await bot.edit_message_text('<b>==Нет упражнений==</b>',
             callback_query.from_user.id, callback_query.message.message_id,
-            reply_markup=keyboard)
+            reply_markup=kb.backKeyboard)
         return
 
     names = []
@@ -176,6 +174,71 @@ async def callbackEditTrainingAddExeChoice(callback_query: types.CallbackQuery,
             else:
                 data['backTexts'][-2] += f'\n<i>{callback_query.data}</i>'
 
+async def callbackEditTrainingRemoveExe(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+
+    async with state.proxy() as data:
+        exercisesInTrain = data['exercisesInTrain']
+
+    keyboard = {"inline_keyboard": []}
+
+    if not(exercisesInTrain):
+        await bot.edit_message_text('<b>==Нет упражнений==</b>',
+            callback_query.from_user.id, callback_query.message.message_id,
+            reply_markup=kb.backKeyboard)
+        return
+
+    for v in exercisesInTrain:
+        keyboard['inline_keyboard'].append([{'text': v, 'callback_data': v}])
+
+    keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
+
+    await bot.edit_message_text('<b>==Изменить тренировку==</b>\n\n'+
+        'Ввыберите упражнение, которое хотите удалить:',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=keyboard)
+
+    await Trainings.editTrainingRemoveExe.set()
+
+async def callbackEditTrainingRemoveExeChoice(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+    async with state.proxy() as data:
+        tr.removeExerciseFromTrain(data['trainings'][data['i']][3], callback_query.data)
+        data['exercisesInTrain'].remove(callback_query.data)
+
+        data['backTexts'][-2] = data['backTexts'][-2].replace(
+            callback_query.data, '')
+
+        i = 0
+        flag = True
+        while flag and i < len(data['backKeyboards'][-1]['inline_keyboard']):
+            if data['backKeyboards'][-1]['inline_keyboard'][i][0]['text'] == callback_query.data:
+                data['backKeyboards'][-1]['inline_keyboard'].pop(i)
+                flag = False
+            i += 1
+
+    await bot.edit_message_text('<b>==Упражнение удалено из тренировки.==</b>',
+            callback_query.from_user.id, callback_query.message.message_id,
+            reply_markup=kb.backKeyboard)
+
+async def callbackEditTrainingRemoveTrain(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
+    async with state.proxy() as data:
+        tr.removeTraining(data['trainings'][data['i']][3])
+
+        data['backTexts'][-1] = data['backTexts'][-1].replace('- Тренировка "' + data["trainings"][data["i"]][0] +
+            '", приоритет "' + data["trainings"][data["i"]][1] + '"', '')
+        data['trainings'].pop(data['i'])
+
+    await bot.edit_message_text('<b>==Тренировка удалена==</b>\n\n',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=kb.backKeyboard)
+
 async def showEditedTrainingMessage(user_id, state: FSMContext):
     async with state.proxy() as data:
         keyboard = {"inline_keyboard": []}
@@ -185,8 +248,8 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
         keyboard['inline_keyboard'].append([{'text': 'Добавить упражнение', 'callback_data': 'addExe'}])
 
         exercisesText = ''
-        if data['exercises']:
-            for i, v in enumerate(data['exercises']):
+        if data['exercisesInTrain']:
+            for i, v in enumerate(data['exercisesInTrain']):
                 exercisesText += str(i)+'\n'
             keyboard['inline_keyboard'].append([{'text': 'Удалить упражнение', 'callback_data': 'removeExe'}])
         else:
@@ -236,7 +299,7 @@ async def commandsEditTraining(message: types.Message, state: FSMContext):
         elif data['stage'] == 'rest':
             time = tr.setsProcessing(message.text)[0]
             tr.editTraining(data['trainings'][data['i']][3], 'rest', time)
-            data['trainings'][data['i']][0] = time
+            data['trainings'][data['i']][2] = time
             hasChanges = True
 
     if hasChanges:
@@ -251,4 +314,7 @@ def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackEditTrainingRest, lambda c: c.data == 'editRest', state=Trainings.editTraining)
     dp.register_callback_query_handler(callbackEditTrainingAddExe, lambda c: c.data == 'addExe', state=Trainings.editTraining)
     dp.register_callback_query_handler(callbackEditTrainingAddExeChoice, lambda c: c.data != 'back', state=Trainings.editTrainingAddExe)
+    dp.register_callback_query_handler(callbackEditTrainingRemoveExe, lambda c: c.data == 'removeExe', state=Trainings.editTraining)
+    dp.register_callback_query_handler(callbackEditTrainingRemoveExeChoice, lambda c: c.data != 'back', state=Trainings.editTrainingRemoveExe)
+    dp.register_callback_query_handler(callbackEditTrainingRemoveTrain, lambda c: c.data == 'removeTrain', state=Trainings.editTraining)
     dp.register_message_handler(commandsEditTraining, state=Trainings.editTraining)

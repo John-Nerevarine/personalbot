@@ -23,4 +23,5 @@ class Trainings(StatesGroup):
     editTrainingSetName = State()
     editTrainingSetPriority = State()
     editTrainingAddExe = State()
+    editTrainingRemoveExe = State()
     editTraining = State()
