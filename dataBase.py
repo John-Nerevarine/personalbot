@@ -13,7 +13,7 @@ def sqlStart ():
             user_id INTEGER,
             priority TEXT,
             rest INTEGER,
-            last REAL
+            last REAL DEFAULT 0
             )''')
 
         base.execute('''CREATE TABLE IF NOT EXISTS exercises(
@@ -24,10 +24,11 @@ def sqlStart ():
             weight TEXT,
             sets TEXT,
             rest INTEGER,
-            last REAL
+            last REAL DEFAULT 0
             )''')
 
         base.execute('''CREATE TABLE IF NOT EXISTS trainings_consist(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             training_id INTEGER,
             exercise_name TEXT
             )''')
@@ -35,7 +36,7 @@ def sqlStart ():
         base.execute('''CREATE TABLE IF NOT EXISTS days(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
-            train_date REAL, 
+            train_date REAL DEFAULT 0, 
             result TEXT
             )''')
 

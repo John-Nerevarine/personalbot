@@ -84,10 +84,9 @@ def getExercisesInTrain(train_id):
 		training_id = ?''', (train_id,))
 	select = db.cur.fetchall()
 	ret = []
-	for i in select:
-		ret.append(i[0])
+	for v in select:
+		ret.append(v[0])
 	return ret
-
 
 def editTraining(trainId, param, new):
 	db.cur.execute(f'UPDATE trainings SET {param} = ? WHERE id = ?',
@@ -99,7 +98,6 @@ def addExerciseInTrain(train, exe):
 		(training_id, exercise_name)
 		VALUES(?, ?)''', (train, exe))
 	db.base.commit()
-
 
 def removeExerciseFromTrain(train_id, exe):
 	db.cur.execute('''DELETE FROM trainings_consist
@@ -116,8 +114,11 @@ def removeTraining(train_id):
 		(train_id,))
 	db.base.commit()
 
-
-
-
-
-
+def getActualTrainingExerciseList(train_id):
+	db.cur.execute('''SELECT exercises.id, name, type, weight, sets, rest FROM exercises JOIN
+		trainings_consist ON name = exercise_name where training_id = ?
+		GROUP BY name HAVING last = MIN(last) ORDER BY trainings_consist.id ASC''', (train_id,))
+	select = db.cur.fetchall()
+	if select:
+		return select
+	else: return False

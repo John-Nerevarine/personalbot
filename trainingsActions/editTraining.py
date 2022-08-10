@@ -7,7 +7,7 @@ from createBot import bot
 from mainMenu import getBackData
 
 # Show exercise
-async def callbackShowTrainings(callback_query: types.CallbackQuery,
+async def callbackShowTrainingsForEdit(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
@@ -52,7 +52,7 @@ async def callbackEditTraining(callback_query: types.CallbackQuery,
     	exercisesText = 'В тренировке нет упражнений.'
 
     keyboard['inline_keyboard'].append([{'text': 'Удалить тренировку', 'callback_data': 'removeTrain'}])
-    keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
+    keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
 
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить тренировку==</b>\n\n'+
@@ -256,7 +256,7 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
             exercisesText = 'В тренировке нет упражнений.'
 
         keyboard['inline_keyboard'].append([{'text': 'Удалить тренировку', 'callback_data': 'removeTrain'}])
-        keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
+        keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
 
         await bot.edit_message_text('<b>==Тренировка изменена!==</b>\n\n'+
             f'<b>Название тренировки:</b> <i>{data["trainings"][data["i"]][0]}</i>\n'+
@@ -306,7 +306,7 @@ async def commandsEditTraining(message: types.Message, state: FSMContext):
         await showEditedTrainingMessage(message.from_user.id, state)
 
 def registerHandlers(dp : Dispatcher):
-    dp.register_callback_query_handler(callbackShowTrainings, lambda c: c.data == 'trainEdit', state=Trainings.main)
+    dp.register_callback_query_handler(callbackShowTrainingsForEdit, lambda c: c.data == 'trainEdit', state=Trainings.main)
     dp.register_callback_query_handler(callbackEditTraining, lambda c: c.data != 'back', state=Trainings.editTrainingSetName)
     dp.register_callback_query_handler(callbackEditTrainingName, lambda c: c.data == 'editName', state=Trainings.editTraining)
     dp.register_callback_query_handler(callbackEditTrainingPriority, lambda c: c.data == 'editPriority', state=Trainings.editTraining)
