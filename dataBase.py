@@ -36,8 +36,7 @@ def sqlStart ():
         base.execute('''CREATE TABLE IF NOT EXISTS days(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
-            train_date REAL DEFAULT 0, 
-            result TEXT
+            train_date REAL DEFAULT 0
             )''')
 
     base.commit()

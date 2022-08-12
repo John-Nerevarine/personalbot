@@ -1,7 +1,9 @@
 import dataBase as db
 import json
-import datetime
+import datetime, time
+import pygsheets
 import re
+from config import GS_KEY, SPSHEET
 
 # Обработка строки повторов
 def setsProcessing(sets):
@@ -122,3 +124,77 @@ def getActualTrainingExerciseList(train_id):
 	if select:
 		return select
 	else: return False
+
+def pushDataToSheets(user):
+	db.cur.execute('''SELECT train_date FROM days
+		WHERE user_id = ?
+		GROUP BY user_id HAVING train_date = MAX(train_date)''', (user,))
+	last_train = db.cur.fetchone()
+	if not(last_train):
+		last_train = 0
+	else: last_train = last_train[0]
+
+	ts = time.time()
+	currentYear = 2024
+	#currentYear = datetime.datetime.fromtimestamp(ts).year
+	currentMonth = datetime.datetime.fromtimestamp(ts).month
+	currentDay = datetime.datetime.fromtimestamp(ts).day
+	lastYear = datetime.datetime.fromtimestamp(last_train).year
+	lastMonth = datetime.datetime.fromtimestamp(last_train).month
+	lastDay = datetime.datetime.fromtimestamp(last_train).day
+
+	client = pygsheets.authorize(service_account_file=GS_KEY)
+	spreadsht = client.open(SPSHEET)
+
+	workSheetName = f'{currentMonth}.{currentYear}'
+
+	if currentYear > lastYear or currentMonth > lastMonth:
+		lastDay = 0
+		spreadsht.add_worksheet(workSheetName)
+		worksht = spreadsht.worksheet_by_title(workSheetName)
+		worksht.index = 0
+		worksht.update_values(crange= 'A1:H1', values=[['Дата', 'Упражнение', 'I', 'II', 'III', 'IV', 'V', 'Всего']])
+		modelCell = pygsheets.Cell("A1")
+		modelCell.color = (1, 0.85, 0.4, 0)
+		modelCell.set_text_format('bold', True)
+		rng = pygsheets.datarange.DataRange(start='A1', end='H1', worksheet=worksht)
+		rng.apply_format(modelCell)
+		rng.update_borders(top=True,
+		                   right=True,
+		                   bottom=True,
+		                   left=True,
+		                   inner_horizontal=True,
+		                   inner_vertical=True,
+		                   style='SOLID')
+		worksht.adjust_column_width(start=3, end=7, pixel_size=23)
+
+	else: 
+		worksht = spreadsht.worksheet_by_title(workSheetName)
+
+def playTraining(train_id, exercises_list, user):
+	ts = time.time()
+	db.cur.execute(f'UPDATE trainings SET last = ? WHERE id = ?',
+		(ts, train_id))
+
+	db.cur.execute('''INSERT INTO days (user_id, train_date)
+		VALUES(?, ?)''', (user, ts))
+
+	for v in exercises_list:
+		sets = json.loads(v[2])
+		minVal = sets[index := 0]
+		for i in range(1, len(sets)):
+			if sets[i] < minVal:
+				minVal = sets[i]
+				index = i
+
+		if v[1] == 'reps':
+			sets[index] += 1
+			db.cur.execute(f'UPDATE exercises SET (sets, last) = (?, ?)WHERE id = ?',
+				(json.dumps(sets), ts, v[0]))
+		else:
+			sets[index] += 60
+			db.cur.execute(f'UPDATE exercises SET (sets, last) = (?, ?)WHERE id = ?',
+				(json.dumps(sets), ts, v[0]))
+
+	db.base.commit()
+

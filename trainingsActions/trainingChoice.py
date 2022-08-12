@@ -5,7 +5,6 @@ from trainingsActions import trainingDataBase as tr
 from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
-import json
 
 async def callbackShowTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
@@ -34,7 +33,8 @@ async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
-        exercisesInTrain = data['exercisesInTrain'] = tr.getActualTrainingExerciseList(data['trainings'][int(callback_query.data)][3])
+        data['train_id'] = data['trainings'][int(callback_query.data)][3]
+        exercisesInTrain = data['exercisesInTrain'] = tr.getActualTrainingExerciseList(data['train_id'])
         training = data['trainings'][int(callback_query.data)]
 
     if not(exercisesInTrain):
@@ -57,7 +57,24 @@ async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
 async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>==Всё пока==</b>',
+    async with state.proxy() as data:
+        train_id = data['train_id']
+        exercisesInTrain = data['exercisesInTrain']
+        data['backTexts'] = data['backTexts'][:-1]
+        data['backKeyboards'] = data['backKeyboards'][:-1]
+        data['backStates'] = data['backStates'][:-1]
+
+    exercises_list = []
+    for v in exercisesInTrain:
+        exercises_list.append([v[0], v[2], v[4]])
+
+    await bot.edit_message_text('<b>==Запись в базу данных...==</b>\n',
+        callback_query.from_user.id, callback_query.message.message_id)
+
+    tr.pushDataToSheets(callback_query.from_user.id)
+    tr.playTraining(train_id, exercises_list, callback_query.from_user.id)
+
+    await bot.edit_message_text('<b>==Тренировка добавлена в таблицу==</b>\nМожно приступать.',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.backKeyboard)
 

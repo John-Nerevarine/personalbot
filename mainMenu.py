@@ -2,20 +2,31 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from support import callbackEmergencyStart
 import keyboards as kb
+import datetime
 from createBot import MainMenu, bot
+from config import USERS
 
 # Start
 async def commandStart(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
-    m = await bot.send_message(message.from_user.id, '<b>==Главное меню==</b>',
-            reply_markup=kb.mMenuKeyboard)
-    await state.finish()
-    await MainMenu.start.set()
-    async with state.proxy() as data:
-        data['backStates'] = []
-        data['backTexts'] = []
-        data['backKeyboards'] = []
-        data['message_id'] = m.message_id
+    if message.from_user.id in USERS:
+        m = await bot.send_message(message.from_user.id, '<b>==Главное меню==</b>',
+                reply_markup=kb.mMenuKeyboard)
+        await state.finish()
+        await MainMenu.start.set()
+        async with state.proxy() as data:
+            data['backStates'] = []
+            data['backTexts'] = []
+            data['backKeyboards'] = []
+            data['message_id'] = m.message_id
+    else:
+        m = await bot.send_message(message.from_user.id, '<b>==У вас нет доступа к боту==</b>')
+        try:
+            file =  open('unauthorized_access_log.txt', 'a')
+            file.write(f'{datetime.datetime.now()} | {message.from_user.id}' +
+                f' | {message.from_user.full_name} | {message.from_user.username}\n')
+        finally:
+            file.close()
 
 # Return to main menu
 async def callbackMainMenu(callback_query: types.CallbackQuery,
