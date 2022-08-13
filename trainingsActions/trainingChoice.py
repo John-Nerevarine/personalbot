@@ -54,12 +54,16 @@ async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.confirmKeyboard)
 
+    async with state.proxy() as data:
+        data['trainingText'] = (f'<b>Тренировка</b> "{training[0]}", отдых между упражнениями {training[2]} секунд.\n' + exercisesText)
+
 async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
         train_id = data['train_id']
         exercisesInTrain = data['exercisesInTrain']
+        trainingText = data['trainingText']
         data['backTexts'] = data['backTexts'][:-1]
         data['backKeyboards'] = data['backKeyboards'][:-1]
         data['backStates'] = data['backStates'][:-1]
@@ -71,10 +75,10 @@ async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
     await bot.edit_message_text('<b>==Запись в базу данных...==</b>\n',
         callback_query.from_user.id, callback_query.message.message_id)
 
-    tr.pushDataToSheets(callback_query.from_user.id)
+    tr.pushDataToSheets(callback_query.from_user.id, exercisesInTrain)
     tr.playTraining(train_id, exercises_list, callback_query.from_user.id)
 
-    await bot.edit_message_text('<b>==Тренировка добавлена в таблицу==</b>\nМожно приступать.',
+    await bot.edit_message_text(f'<b>==Тренировка добавлена в таблицу==</b>\n{trainingText}',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.backKeyboard)
 

@@ -215,7 +215,7 @@ async def callbackEditExerciseNewSets(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
-        'Введите подходы через пробел:',
+        'Введите подходы через пробел (не более пяти):',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
 

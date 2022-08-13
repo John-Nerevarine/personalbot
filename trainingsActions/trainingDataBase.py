@@ -11,10 +11,13 @@ def setsProcessing(sets):
 	    sets = re.findall(r'\d+', sets)
 	    for i, v in enumerate(sets):
 	        sets[i] = int(sets[i])
-	    return sets
+	    while len(sets) < 5:
+	    	sets.append(0)
+	    return sets[:5]
+
 	except Exception as e:
 		print(e)
-		return [0]
+		return [0, 0, 0, 0, 0]
 
 # Проверить, есть ли такое упражнение
 def checkExercise(user_id, name, exeType, weight):
@@ -125,7 +128,7 @@ def getActualTrainingExerciseList(train_id):
 		return select
 	else: return False
 
-def pushDataToSheets(user):
+def pushDataToSheets(user, exercises):
 	db.cur.execute('''SELECT train_date FROM days
 		WHERE user_id = ?
 		GROUP BY user_id HAVING train_date = MAX(train_date)''', (user,))
@@ -135,8 +138,7 @@ def pushDataToSheets(user):
 	else: last_train = last_train[0]
 
 	ts = time.time()
-	currentYear = 2024
-	#currentYear = datetime.datetime.fromtimestamp(ts).year
+	currentYear = datetime.datetime.fromtimestamp(ts).year
 	currentMonth = datetime.datetime.fromtimestamp(ts).month
 	currentDay = datetime.datetime.fromtimestamp(ts).day
 	lastYear = datetime.datetime.fromtimestamp(last_train).year
@@ -148,12 +150,12 @@ def pushDataToSheets(user):
 
 	workSheetName = f'{currentMonth}.{currentYear}'
 
-	if currentYear > lastYear or currentMonth > lastMonth:
+	if currentYear != lastYear or currentMonth != lastMonth:
 		lastDay = 0
 		spreadsht.add_worksheet(workSheetName)
 		worksht = spreadsht.worksheet_by_title(workSheetName)
 		worksht.index = 0
-		worksht.update_values(crange= 'A1:H1', values=[['Дата', 'Упражнение', 'I', 'II', 'III', 'IV', 'V', 'Всего']])
+		worksht.update_values(crange= 'A1:H1', values=[['Число', 'Упражнение', 'I', 'II', 'III', 'IV', 'V', 'Всего']])
 		modelCell = pygsheets.Cell("A1")
 		modelCell.color = (1, 0.85, 0.4, 0)
 		modelCell.set_text_format('bold', True)
@@ -168,8 +170,84 @@ def pushDataToSheets(user):
 		                   style='SOLID')
 		worksht.adjust_column_width(start=3, end=7, pixel_size=23)
 
-	else: 
+	else:
 		worksht = spreadsht.worksheet_by_title(workSheetName)
+		modelCell = pygsheets.Cell("A1")
+
+	cols = worksht.get_col(2, include_tailing_empty=False)
+	lastRow = len(cols)
+
+	if not(currentDay == lastDay or currentDay == lastDay+1):
+
+		valueMatrix = []
+		for i in range(lastDay+1, currentDay):
+			valueMatrix.append([i, '-'])
+	
+		modelCell.color = (0.8, 0.8, 0.8, 0)
+		modelCell.set_text_format('bold', False)
+		modelCell.set_horizontal_alignment(pygsheets.custom_types.HorizontalAlignment.CENTER)
+		startIndex = lastRow+1
+		endIndex = currentDay-lastDay+lastRow-1
+		rng = pygsheets.datarange.DataRange(start='A'+str(startIndex), end='H'+str(endIndex), worksheet=worksht)
+		rng.update_values(valueMatrix)
+		rng.apply_format(modelCell)
+		rng.update_borders(top=True,
+		                   right=True,
+		                   bottom=True,
+		                   left=True,
+		                   style='SOLID')
+
+	startIndex = currentDay-lastDay+lastRow + (1 if currentDay == lastDay else 0)
+	endIndex = startIndex+len(exercises)-1
+	rng = pygsheets.datarange.DataRange(start='A'+str(startIndex), end='H'+str(endIndex), worksheet=worksht)
+
+	# id, name, type, weight, sets, rest
+	valueMatrix =[]
+	for i, v in enumerate(exercises):
+		sets = json.loads(v[4])
+		if v[2] == 'time':
+			name = v[1] + ', вес: ' + v[3] + ', на время'
+			for j, k in enumerate(sets):
+				sets[j] = int(sets[j]/60*100)/100
+		else: name = v[1]
+
+		formula = f'=SUM(C{str(startIndex+i)}:G{str(startIndex+i)})'
+		valueMatrix.append(['', name, *sets,  formula])
+	valueMatrix[0][0] = currentDay
+
+	rng.update_values(valueMatrix)
+
+	modelCell.color = (1, 1, 1, 0)
+	modelCell.set_text_format('bold', False)
+	modelCell.set_horizontal_alignment(pygsheets.custom_types.HorizontalAlignment.CENTER)
+	modelCell.set_vertical_alignment(pygsheets.custom_types.VerticalAlignment.MIDDLE)
+	modelCell.wrap_strategy = 'WRAP'
+	rng.apply_format(modelCell)
+
+	rng = pygsheets.datarange.DataRange(start='A'+str(startIndex), end='A'+str(endIndex), worksheet=worksht)
+	rng.update_borders(top=True,
+	                   right=True,
+	                   bottom=True,
+	                   left=True,
+	                   style='SOLID')
+
+	rng = pygsheets.datarange.DataRange(start='B'+str(startIndex), end='H'+str(endIndex), worksheet=worksht)
+	rng.update_borders(top=True,
+	                   right=True,
+	                   bottom=True,
+	                   left=True,
+	                   style='SOLID')
+
+	modelCell.color = (1, 0.7, 0.7, 0)
+	rng = pygsheets.datarange.DataRange(start='C'+str(startIndex), end='G'+str(endIndex), worksheet=worksht)
+	rng.apply_format(modelCell)
+	rng.update_borders(top=True,
+	                   right=True,
+	                   bottom=True,
+	                   left=True,
+	                   inner_vertical=True,
+	                   inner_horizontal=True,
+	                   style='SOLID')
 
 def playTraining(train_id, exercises_list, user):
 	ts = time.time()
@@ -183,7 +261,7 @@ def playTraining(train_id, exercises_list, user):
 		sets = json.loads(v[2])
 		minVal = sets[index := 0]
 		for i in range(1, len(sets)):
-			if sets[i] < minVal:
+			if sets[i] < minVal and sets[i] != 0:
 				minVal = sets[i]
 				index = i
 

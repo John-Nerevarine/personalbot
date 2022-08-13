@@ -46,7 +46,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
                     f'<b>Название упражнения:</b> <i>{data["name"]}</i>\n'+
                     f'<b>Тип упражнения:</b> <i>{"Повторы" if data["type"]=="reps" else "Время"}</i>\n'+
                     f'<b>Вес:</b> <i>{data["weight"]}</i>\n\n'+
-                    ('Введите количество повторов по подходам через пробел:' if data['type'] == 'reps'
+                    ('Введите количество повторов по подходам через пробел (не более пяти):' if data['type'] == 'reps'
                     else 'Введите время работы по подходам через пробел:'),
                     message.from_user.id, data['message_id'],
                     reply_markup=kb.cancelKeyboard)
