@@ -258,7 +258,8 @@ def playTraining(train_id, exercises_list, user):
     # id, name, type, weight, sets, rest
     for v in exercises_list:
         sets = json.loads(v[4])
-        minVal = sets[index := 0]
+        index = 0
+        minVal = sets[index]
         for i in range(1, len(sets)):
             if sets[i] < minVal and sets[i] != 0:
                 minVal = sets[i]
