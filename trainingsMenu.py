@@ -110,4 +110,4 @@ def registerHandlers(dp : Dispatcher):
     trainingsActions.addTraining.registerHandlers(dp)
     trainingsActions.editTraining.registerHandlers(dp)
     trainingsActions.trainingChoice.registerHandlers(dp)
-    #trainingsActions.trainingQuick.registerHandlers(dp)
+    trainingsActions.trainingQuick.registerHandlers(dp)

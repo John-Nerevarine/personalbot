@@ -26,3 +26,4 @@ class Trainings(StatesGroup):
     editTrainingRemoveExe = State()
     editTraining = State()
     trainingChoice = State()
+    qiuckTraining = State()

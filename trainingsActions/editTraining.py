@@ -49,7 +49,7 @@ async def callbackEditTraining(callback_query: types.CallbackQuery,
             exercisesText += v +'\n'
         keyboard['inline_keyboard'].append([{'text': 'Удалить упражнение', 'callback_data': 'removeExe'}])
     else:
-    	exercisesText = 'В тренировке нет упражнений.'
+        exercisesText = 'В тренировке нет упражнений.'
 
     keyboard['inline_keyboard'].append([{'text': 'Удалить тренировку', 'callback_data': 'removeTrain'}])
     keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
