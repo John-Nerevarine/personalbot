@@ -221,7 +221,7 @@ def pushDataToSheets(user, exercises):
             name = v[1] + ', вес: ' + v[3] + ', на время'
             for j, k in enumerate(sets):
                 sets[j] = int(sets[j]/60*100)/100
-        else: name = v[1]
+        else: name = v[1] + ', вес: ' + v[3]
 
         formula = f'=SUM(C{str(startIndex+i)}:G{str(startIndex+i)})'
         valueMatrix.append(['', name, *sets,  formula])
