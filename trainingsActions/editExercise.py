@@ -106,8 +106,6 @@ async def callbackEditExerciseWeight(callback_query: types.CallbackQuery,
 async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    
-    #################
 
     async with state.proxy() as data:
         trainsWithExercise = tr.getTrainsWithExercise(callback_query.from_user.id, data['name'])
@@ -121,8 +119,6 @@ async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
                 callback_query.from_user.id, callback_query.message.message_id,
                 reply_markup=kb.backKeyboard)
             return
-
-
 
         tr.removeExercise(callback_query.from_user.id, data['name'], data['type'], data['weight'])
         data['exercises'] = exercises = tr.getExerciseList(callback_query.from_user.id)
@@ -200,7 +196,7 @@ async def callbackEditExerciseNewName(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
-        'Введите новое имя:',
+        'Введите новое имя (max. 34):',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
 
@@ -224,7 +220,7 @@ async def callbackEditExerciseNewWeight(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
-        'Введите вес:',
+        'Введите вес (max. 34):',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
 
@@ -307,6 +303,8 @@ async def callbackEditExerciseNewTypeSet(callback_query: types.CallbackQuery,
 
 async def commandsEditExercise(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
+    if len(message.text) > 34:
+        return
     hasChanges = False
 
     async with state.proxy() as data:

@@ -11,7 +11,7 @@ async def callbackAddExercise(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
-    await bot.edit_message_text('<b>==Добавить упражнение==</b>\n\nВведите название упражнения:',
+    await bot.edit_message_text('<b>==Добавить упражнение==</b>\n\nВведите название упражнения (max. 34):',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
     await Trainings.addExercise.set()
@@ -20,6 +20,8 @@ async def callbackAddExercise(callback_query: types.CallbackQuery,
 
 async def commandsAddExercise(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
+    if len(message.text) > 34:
+        return
     async with state.proxy() as data:
         if data['stage'] == 'name':
             data['stage'] = 'type'

@@ -70,7 +70,7 @@ async def callbackEditTrainingName(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить тренировку==</b>\n\n'+
-        'Введите новое название:',
+        'Введите новое название  (max. 34):',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.cancelKeyboard)
 
@@ -273,6 +273,8 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
 
 async def commandsEditTraining(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
+    if len(message.text) > 34:
+        return
     hasChanges = False
 
     async with state.proxy() as data:
@@ -283,7 +285,7 @@ async def commandsEditTraining(message: types.Message, state: FSMContext):
             if message.text in names:
                 data['temp'] += 1
                 await bot.edit_message_text('<b>==Изменить тренировку==</b>\n\n'+
-                    'Такая тренировка уже есть. Введите новое название' + ('!' * data['temp']),
+                    'Такая тренировка уже есть. Введите новое название (max. 34)' + ('!' * data['temp']),
                     message.from_user.id, data['message_id'],
                     reply_markup=kb.cancelKeyboard)
 

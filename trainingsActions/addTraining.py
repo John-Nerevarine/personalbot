@@ -20,6 +20,8 @@ async def callbackAddTraining(callback_query: types.CallbackQuery,
 
 async def commandsAddTraining(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
+    if len(message.text) > 34:
+        return
     async with state.proxy() as data:
         if data['stage'] == 'name':
             if tr.isTrainingExist(message.from_user.id, message.text):
