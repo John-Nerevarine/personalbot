@@ -106,7 +106,24 @@ async def callbackEditExerciseWeight(callback_query: types.CallbackQuery,
 async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
+    
+    #################
+
     async with state.proxy() as data:
+        trainsWithExercise = tr.getTrainsWithExercise(callback_query.from_user.id, data['name'])
+        if trainsWithExercise:
+            trainsText = ''
+            for v in trainsWithExercise:
+                trainsText += f'"{v[0]}", '
+            trainsText = trainsText[:-2] + '.'
+            await bot.edit_message_text('<b>==Невозможно удалить==</b>\n\n' +
+                f'Упражнение используется в следующих тренировках: {trainsText}',
+                callback_query.from_user.id, callback_query.message.message_id,
+                reply_markup=kb.backKeyboard)
+            return
+
+
+
         tr.removeExercise(callback_query.from_user.id, data['name'], data['type'], data['weight'])
         data['exercises'] = exercises = tr.getExerciseList(callback_query.from_user.id)
 
@@ -127,9 +144,13 @@ async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
         keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
         keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
 
+
         exercisesListText = ''
+        exercisesList = []
         for v in exercises:
-            exercisesListText += f'{v[0]} на {"повторы" if v[1] == "reps" else "время"} с весом: {v[2]}\n'
+            if v[0] not in exercisesList:
+                exercisesList.append(v[0])
+                exercisesListText += f'> {v[0]} на {"повторы" if v[1] == "reps" else "время"}\n'
 
         async with state.proxy() as data:
             data['backTexts'][-1] = '<b>==Список упражнений==</b>\n\n'+exercisesListText

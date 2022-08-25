@@ -231,7 +231,7 @@ async def callbackEditTrainingRemoveTrain(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         tr.removeTraining(data['trainings'][data['i']][3])
 
-        data['backTexts'][-1] = data['backTexts'][-1].replace('- Тренировка "' + data["trainings"][data["i"]][0] +
+        data['backTexts'][-1] = data['backTexts'][-1].replace('> Тренировка "' + data["trainings"][data["i"]][0] +
             '", приоритет "' + data["trainings"][data["i"]][1] + '"', '')
         data['trainings'].pop(data['i'])
 

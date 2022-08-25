@@ -46,8 +46,11 @@ async def callbackShowExercisesList(callback_query: types.CallbackQuery,
         return
 
     exercisesListText = ''
+    exercisesList = []
     for v in exercises:
-        exercisesListText += f'{v[0]} на {"повторы" if v[1] == "reps" else "время"} с весом: {v[2]}\n'
+        if v[0] not in exercisesList:
+            exercisesList.append(v[0])
+            exercisesListText += f'> {v[0]} на {"повторы" if v[1] == "reps" else "время"}\n'
 
 
     keyboard['inline_keyboard'].append([{'text': 'Изменить упражнение', 'callback_data': 'exeEdit'}])
@@ -84,7 +87,7 @@ async def callbackShowTrainingsList(callback_query: types.CallbackQuery,
 
     trainingsListText = ''
     for v in trainings:
-        trainingsListText += f'Тренировка "{v[0]}", приоритет "{v[1]}"\n'
+        trainingsListText += f'> Тренировка "{v[0]}", приоритет "{v[1]}"\n'
 
 
     keyboard['inline_keyboard'].append([{'text': 'Изменить тренировку', 'callback_data': 'trainEdit'}])

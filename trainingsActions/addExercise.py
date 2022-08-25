@@ -53,7 +53,11 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
 
         elif data['stage'] == 'sets':
             sets = tr.setsProcessing(message.text)
-            if len(sets) > 1:
+            setsNumber = 0
+            for v in sets:
+                if v != 0:
+                    setsNumber += 1
+            if setsNumber > 1:
                 data['stage'] = 'rest'
                 data['sets'] = sets
                 await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
@@ -65,7 +69,7 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
                     message.from_user.id, data['message_id'],
                     reply_markup=kb.cancelKeyboard)
 
-            elif len(sets) == 1:
+            elif setsNumber == 1:
                 data['stage'] = 'confirm'
                 data['sets'] = sets
                 data['rest'] = False
@@ -77,10 +81,12 @@ async def commandsAddExercise(message: types.Message, state: FSMContext):
                     'Подтвердите, всё верно? ',
                     message.from_user.id, data['message_id'],
                     reply_markup=kb.confirmKeyboard)
+            else:
+                return
 
         elif data['stage'] == 'rest':
             time = tr.setsProcessing(message.text)
-            if (len(time) == 1):
+            if (time[0] > 0):
                 data['stage'] = 'confirm'
                 data['rest'] = time[0]
                 await bot.edit_message_text('<b>==Добавить упражнение==</b>\n'+
