@@ -94,6 +94,7 @@ async def callbackAddTrainingConfirm(callback_query: types.CallbackQuery,
 def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackAddTraining, lambda c: c.data == 'trainAdd', state=Trainings.main)
     dp.register_callback_query_handler(callbackAddTrainingPriority, lambda c: c.data == 'Высокий', state=Trainings.addTrain)
-    dp.register_callback_query_handler(callbackAddTrainingPriority, lambda c: c.data == 'Низкий', state=Trainings.addTrain)
+    dp.register_callback_query_handler(callbackAddTrainingPriority, lambda c: c.data == 'Обычный', state=Trainings.addTrain)
+    dp.register_callback_query_handler(callbackAddTrainingPriority, lambda c: c.data == 'Особый', state=Trainings.addTrain)
     dp.register_callback_query_handler(callbackAddTrainingConfirm, lambda c: c.data == 'confirm', state=Trainings.addTrain)
     dp.register_message_handler(commandsAddTraining, state=Trainings.addTrain)

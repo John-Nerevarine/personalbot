@@ -52,10 +52,12 @@ exerciseTypeKeyboard.add(cancelButton)
 
 # Training Priority
 highPriorityTrainButton = InlineKeyboardButton('Высокий', callback_data='Высокий')
-lowPriorityTrainButton = InlineKeyboardButton('Низкий', callback_data='Низкий')
+averagePriorityTrainButton = InlineKeyboardButton('Обычный', callback_data='Обычный')
+specialPriorityTrainButton = InlineKeyboardButton('Особый', callback_data='Особый')
 trainPriorityKeyboard = InlineKeyboardMarkup()
 trainPriorityKeyboard.add(highPriorityTrainButton)
-trainPriorityKeyboard.add(lowPriorityTrainButton)
+trainPriorityKeyboard.add(averagePriorityTrainButton)
+trainPriorityKeyboard.add(specialPriorityTrainButton)
 trainPriorityKeyboard.add(cancelButton)
 
 

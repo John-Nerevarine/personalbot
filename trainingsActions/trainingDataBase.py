@@ -337,10 +337,10 @@ def getOldestTraining(user_id, priority = None):
             FROM exercises JOIN trainings_consist
             ON name = exercise_name
             WHERE training_id = (SELECT id FROM trainings WHERE
-            user_id = ? GROUP BY user_id HAVING MIN(last))
+            user_id = ? AND priority != ? GROUP BY user_id HAVING MIN(last))
             GROUP BY name HAVING last = MIN(last)
             ORDER BY trainings_consist.id ASC)
 
-            JOIN trainings ON trainings.id = training_id''', (user_id,))
+            JOIN trainings ON trainings.id = training_id''', (user_id, 'Особый'))
         training = db.cur.fetchall()
     return training
