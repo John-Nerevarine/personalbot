@@ -6,7 +6,7 @@ from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
 
-# Add Training    
+# Start adding a training    
 async def callbackAddTraining(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -18,6 +18,7 @@ async def callbackAddTraining(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'name'
 
+# Processing commands when adding a training
 async def commandsAddTraining(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
     if len(message.text) > 34:
@@ -49,6 +50,7 @@ async def commandsAddTraining(message: types.Message, state: FSMContext):
                 message.from_user.id, data['message_id'],
                 reply_markup=kb.confirmKeyboard)
 
+# Training priority chosen
 async def callbackAddTrainingPriority(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -62,6 +64,7 @@ async def callbackAddTrainingPriority(callback_query: types.CallbackQuery,
             callback_query.from_user.id, callback_query.message.message_id,
             reply_markup=kb.cancelKeyboard)
 
+# Confirm adding a training
 async def callbackAddTrainingConfirm(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)

@@ -7,6 +7,7 @@ from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
 
+# Show optimal training
 async def callbackShowQuickTraining(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -44,6 +45,7 @@ async def callbackShowQuickTraining(callback_query: types.CallbackQuery,
          data['trainingText'] = trainingText
     await Trainings.qiuckTraining.set()
 
+# Add training to GoogleSheets and Database
 async def callbackConfirmQuickTraining(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)

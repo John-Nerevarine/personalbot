@@ -5,7 +5,7 @@ import pygsheets
 import re
 from config import GS_KEY, SPSHEET
 
-# Обработка строки повторов
+# Processing input of sets
 def setsProcessing(sets):
     try:
         sets = re.findall(r'\d+', sets)
@@ -19,7 +19,7 @@ def setsProcessing(sets):
         print(e)
         return [0, 0, 0, 0, 0]
 
-# Проверить, есть ли такое упражнение
+# Check exercise existence
 def checkExercise(user_id, name, exeType, weight):
     db.cur.execute('''SELECT name, type, weight FROM exercises WHERE
         user_id = ? AND name = ? AND type = ? AND weight = ?''', (user_id, name, exeType, weight))
@@ -28,7 +28,7 @@ def checkExercise(user_id, name, exeType, weight):
     else:
         return False
 
-# Добавить упражение
+# Add exercise
 def addExercise(user_id, name, exeType, weight, sets, rest):
     sets = json.dumps(sets)
     db.cur.execute('''INSERT INTO exercises
@@ -36,7 +36,7 @@ def addExercise(user_id, name, exeType, weight, sets, rest):
         VALUES(?, ?, ?, ?, ?, ?)''', (user_id, name, exeType, weight, sets, rest))
     db.base.commit()
 
-# Получить список упражнений
+# Get list of exercises
 def getExerciseList(user_id):
     db.cur.execute('''SELECT name, type, weight, sets, rest, id FROM exercises WHERE user_id = ?''', (user_id,))
     exercises =  db.cur.fetchall()
@@ -47,7 +47,7 @@ def getExerciseList(user_id):
     else:
         return False
 
-# можно ли удалять упражнение
+# Check ability to remove exercise
 def getTrainsWithExercise(user_id, exercise):
     db.cur.execute('''SELECT name FROM trainings_consist JOIN trainings on training_id = trainings.id
         WHERE user_id = ? AND exercise_name = ?''', (user_id, exercise))
@@ -62,19 +62,20 @@ def getTrainsWithExercise(user_id, exercise):
 
     return inUseTrainings
 
-# Удалить упражнение
+# Remove exercise
 def removeExercise(user_id, name, exeType, weight):
     db.cur.execute('''DELETE FROM exercises
         WHERE user_id = ? AND name = ? AND type = ? AND weight = ?''',
         (user_id, name, exeType, weight))
     db.base.commit()
 
-# Изменить один параметр упражнения
+# Change one parameter of exercise
 def editExercise(exeId, param, new):
     db.cur.execute(f'UPDATE exercises SET {param} = ? WHERE id = ?',
         (new, exeId))
     db.base.commit()
 
+# Get list of trainings
 def getTrainingsList(user_id):
     db.cur.execute('''SELECT name, priority, rest, id FROM trainings WHERE user_id = ?''', (user_id,))
     trainings =  db.cur.fetchall()
@@ -85,6 +86,7 @@ def getTrainingsList(user_id):
     else:
         return False
 
+# Check training existence
 def isTrainingExist(user_id, name):
     db.cur.execute('''SELECT name FROM trainings WHERE
         user_id = ? AND name = ?''', (user_id, name))
@@ -93,12 +95,14 @@ def isTrainingExist(user_id, name):
     else:
         return False
 
+# Add training
 def addTraining(user_id, name, priority, rest):
     db.cur.execute('''INSERT INTO trainings
         (user_id, name, priority, rest)
         VALUES(?, ?, ?, ?)''', (user_id, name, priority, rest))
     db.base.commit()
 
+# Get list of exercises in training
 def getExercisesInTrain(train_id):
     db.cur.execute('''SELECT exercise_name FROM trainings_consist WHERE
         training_id = ?''', (train_id,))
@@ -108,23 +112,27 @@ def getExercisesInTrain(train_id):
         ret.append(v[0])
     return ret
 
+# Change one parameter of training
 def editTraining(trainId, param, new):
     db.cur.execute(f'UPDATE trainings SET {param} = ? WHERE id = ?',
         (new, trainId))
     db.base.commit()
 
+# Add exercise in training
 def addExerciseInTrain(train, exe):
     db.cur.execute('''INSERT INTO trainings_consist
         (training_id, exercise_name)
         VALUES(?, ?)''', (train, exe))
     db.base.commit()
 
+# Remove exercise from training
 def removeExerciseFromTrain(train_id, exe):
     db.cur.execute('''DELETE FROM trainings_consist
         WHERE training_id = ? AND exercise_name = ?''',
         (train_id, exe))
     db.base.commit()
 
+# Remove training
 def removeTraining(train_id):
     db.cur.execute('''DELETE FROM trainings_consist
         WHERE training_id = ?''',
@@ -134,12 +142,14 @@ def removeTraining(train_id):
         (train_id,))
     db.base.commit()
 
+# Get list of exercises in trainings depending on last date
 def getActualTrainingExerciseList(train_id):
     db.cur.execute('''SELECT exercises.id, name, type, weight, sets, rest FROM exercises JOIN
         trainings_consist ON name = exercise_name WHERE training_id = ?
         GROUP BY name HAVING last = MIN(last) ORDER BY trainings_consist.id ASC''', (train_id,))
     return db.cur.fetchall()
 
+# Insert trainings data to Google Sheets
 def pushDataToSheets(user, exercises):
     db.cur.execute('''SELECT train_date FROM days
         WHERE user_id = ?
@@ -261,6 +271,7 @@ def pushDataToSheets(user, exercises):
                        inner_horizontal=True,
                        style='SOLID')
 
+# Changes in the database when trainings has been chosen
 def playTraining(train_id, exercises_list, user):
     ts = time.time()
     db.cur.execute(f'UPDATE trainings SET last = ? WHERE id = ?',
@@ -268,7 +279,6 @@ def playTraining(train_id, exercises_list, user):
 
     db.cur.execute('''INSERT INTO days (user_id, train_date)
         VALUES(?, ?)''', (user, ts))
-
 
     # id, name, type, weight, sets, rest
     for v in exercises_list:
@@ -291,6 +301,7 @@ def playTraining(train_id, exercises_list, user):
 
     db.base.commit()
 
+# Get timestamp of last training
 def getLastTrainingDate(user_id):
     db.cur.execute('''SELECT train_date FROM days 
         WHERE user_id = ?
@@ -301,6 +312,14 @@ def getLastTrainingDate(user_id):
     else:
         return 0
 
+# Remove date of last training in "days"
+def removeLastTrainingDate(user_id):
+    db.cur.execute('''DELETE FROM days
+        WHERE user_id = ? AND train_date = (SELECT MAX(train_date) FROM days WHERE user_id = ?)''',
+        (user_id, user_id))
+    db.base.commit()
+
+# Get oldes trainings depending on priority
 def getOldestTraining(user_id, priority = None):
     priorityExist = False
 

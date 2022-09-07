@@ -17,7 +17,7 @@ async def callbackTrainingsMain(callback_query: types.CallbackQuery,
         reply_markup=kb.trainMainKeyboard)
     await Trainings.main.set()
      
-# Settings Menu
+# Trainings Settings Menu
 async def callbackTrainingsSettings(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -76,7 +76,8 @@ async def callbackShowTrainingsList(callback_query: types.CallbackQuery,
     keyboard = {"inline_keyboard": []}
 
     if not(trainings):
-        keyboard['inline_keyboard'].append([{'text': '>> Добавить тренировку', 'callback_data': 'trainAdd'}])
+        keyboard['inline_keyboard'].append([{'text': 'Добавить тренировку', 'callback_data': 'trainAdd'}])
+        keyboard['inline_keyboard'].append([{'text': 'Дата последней тенировки', 'callback_data': 'lastDate'}])
         keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
         keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
 
@@ -92,6 +93,7 @@ async def callbackShowTrainingsList(callback_query: types.CallbackQuery,
 
     keyboard['inline_keyboard'].append([{'text': 'Изменить тренировку', 'callback_data': 'trainEdit'}])
     keyboard['inline_keyboard'].append([{'text': 'Добавить тренировку', 'callback_data': 'trainAdd'}])
+    keyboard['inline_keyboard'].append([{'text': 'Дата последней тенировки', 'callback_data': 'lastDate'}])
     keyboard['inline_keyboard'].append([{'text': '<< Назад', 'callback_data': 'back'}])
     keyboard['inline_keyboard'].append([{'text': '<< Главное меню', 'callback_data': 'mMenu'}])
 
@@ -101,7 +103,6 @@ async def callbackShowTrainingsList(callback_query: types.CallbackQuery,
 
     async with state.proxy() as data:
         data['trainings'] = trainings
-
 
 def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackTrainingsMain, lambda c: c.data == 'trainMenu', state=MainMenu.start)

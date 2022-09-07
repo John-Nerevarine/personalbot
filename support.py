@@ -4,6 +4,7 @@ import keyboards as kb
 from createBot import MainMenu
 from createBot import bot
 
+# Any button action if bot has been restarted
 async def callbackEmergencyStart(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -26,6 +27,7 @@ async def callbackEmergencyStart(callback_query: types.CallbackQuery,
         data['backKeyboards'] = []
         data['message_id'] = m.message_id
 
+# Deleting any useless user message
 async def commandDeleteMessage(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
 

@@ -7,7 +7,7 @@ from createBot import bot
 from mainMenu import getBackData
 import json
 
-# Show exercise
+# Show menu from existing exercises
 async def callbackShowExercises(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -31,6 +31,7 @@ async def callbackShowExercises(callback_query: types.CallbackQuery,
 
     await Trainings.editExerciseName.set()
 
+# Show existing types for the exercise
 async def callbackEditExerciseName(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -55,6 +56,7 @@ async def callbackEditExerciseName(callback_query: types.CallbackQuery,
 
     await Trainings.editExerciseType.set()
 
+# Show existing weights for the exercise
 async def callbackEditExerciseType(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -79,6 +81,7 @@ async def callbackEditExerciseType(callback_query: types.CallbackQuery,
 
     await Trainings.editExerciseWeight.set()
 
+# Show available actions for the exercise
 async def callbackEditExerciseWeight(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -102,7 +105,7 @@ async def callbackEditExerciseWeight(callback_query: types.CallbackQuery,
 
     await Trainings.main.set()
 
-# Remove Exercise
+# Remove the exercise
 async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -156,6 +159,7 @@ async def callbackEditExerciseRemove(callback_query: types.CallbackQuery,
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.backKeyboard)
 
+# Show available editing options for the exercise
 async def callbackEditExercise(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -191,6 +195,7 @@ async def callbackEditExercise(callback_query: types.CallbackQuery,
 
     await Trainings.editExercise.set()
 
+# Entering new name for the exercise
 async def callbackEditExerciseNewName(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -203,6 +208,7 @@ async def callbackEditExerciseNewName(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'name'
 
+# Choosing new type for the exercise
 async def callbackEditExerciseNewType(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -215,6 +221,7 @@ async def callbackEditExerciseNewType(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'type'
 
+# Entering new weight for the exercise
 async def callbackEditExerciseNewWeight(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -227,6 +234,7 @@ async def callbackEditExerciseNewWeight(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'weight'
 
+# Entering new sets for the exercise
 async def callbackEditExerciseNewSets(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -239,6 +247,7 @@ async def callbackEditExerciseNewSets(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'sets'
 
+# Entering new rest time for the exercise
 async def callbackEditExerciseNewRest(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -251,6 +260,7 @@ async def callbackEditExerciseNewRest(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'rest'
 
+# Show message with edited exercise
 async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
     async with state.proxy() as data:
         await bot.edit_message_text('<b>==Упражнение изменено!==</b>\n\n'+
@@ -264,6 +274,7 @@ async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
             reply_markup=keyboard)
         data['stage'] = 'choice'
 
+# Set new exercise type
 async def callbackEditExerciseNewTypeSet(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     
@@ -301,6 +312,7 @@ async def callbackEditExerciseNewTypeSet(callback_query: types.CallbackQuery,
 
     await showEditedExerciseMessage(callback_query.from_user.id, kb.exerciseEditKeyboard, state)
 
+# Processing commands when editing the exercise
 async def commandsEditExercise(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
     if len(message.text) > 34:

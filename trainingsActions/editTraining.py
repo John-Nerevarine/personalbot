@@ -5,8 +5,9 @@ from trainingsActions import trainingDataBase as tr
 from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
+import datetime
 
-# Show exercise
+# Show menu from existing trainings
 async def callbackShowTrainingsForEdit(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -25,6 +26,7 @@ async def callbackShowTrainingsForEdit(callback_query: types.CallbackQuery,
 
     await Trainings.editTrainingSetName.set()
 
+# Show available editing options and actions for the training
 async def callbackEditTraining(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     i = int(callback_query.data)
@@ -65,6 +67,7 @@ async def callbackEditTraining(callback_query: types.CallbackQuery,
 
     await Trainings.editTraining.set()
 
+# Entering new name for the training
 async def callbackEditTrainingName(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -77,6 +80,7 @@ async def callbackEditTrainingName(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'name'
 
+# Choosing new name for the training
 async def callbackEditTrainingPriority(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -91,6 +95,7 @@ async def callbackEditTrainingPriority(callback_query: types.CallbackQuery,
 
     await Trainings.editTrainingSetPriority.set()
 
+# Choosing new priority for the training
 async def callbackEditTrainingPrioritySet(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -106,6 +111,7 @@ async def callbackEditTrainingPrioritySet(callback_query: types.CallbackQuery,
     await showEditedTrainingMessage(callback_query.from_user.id, state)
     await Trainings.editTraining.set()
 
+# Entering new rest time for the training
 async def callbackEditTrainingRest(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -118,6 +124,7 @@ async def callbackEditTrainingRest(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'rest'
 
+# Show exercises to add in the training
 async def callbackEditTrainingAddExe(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -150,6 +157,7 @@ async def callbackEditTrainingAddExe(callback_query: types.CallbackQuery,
 
     await Trainings.editTrainingAddExe.set()
 
+# Adding the exercise in the training
 async def callbackEditTrainingAddExeChoice(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -174,6 +182,7 @@ async def callbackEditTrainingAddExeChoice(callback_query: types.CallbackQuery,
             else:
                 data['backTexts'][-2] += f'\n<i>{callback_query.data}</i>'
 
+# Show exercises to remove from training
 async def callbackEditTrainingRemoveExe(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -202,6 +211,7 @@ async def callbackEditTrainingRemoveExe(callback_query: types.CallbackQuery,
 
     await Trainings.editTrainingRemoveExe.set()
 
+# Removing the exercise from the training
 async def callbackEditTrainingRemoveExeChoice(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -225,6 +235,7 @@ async def callbackEditTrainingRemoveExeChoice(callback_query: types.CallbackQuer
             callback_query.from_user.id, callback_query.message.message_id,
             reply_markup=kb.backKeyboard)
 
+# Removing the training
 async def callbackEditTrainingRemoveTrain(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
@@ -239,6 +250,7 @@ async def callbackEditTrainingRemoveTrain(callback_query: types.CallbackQuery,
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.backKeyboard)
 
+# Show message with edited training
 async def showEditedTrainingMessage(user_id, state: FSMContext):
     async with state.proxy() as data:
         keyboard = {"inline_keyboard": []}
@@ -271,6 +283,7 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
         data['backStates'] = data['backStates'][:-1]
         data['stage'] = 'choice'
 
+# Processing commands when editing the training
 async def commandsEditTraining(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
     if len(message.text) > 34:
@@ -307,6 +320,37 @@ async def commandsEditTraining(message: types.Message, state: FSMContext):
     if hasChanges:
         await showEditedTrainingMessage(message.from_user.id, state)
 
+# Show date of last training
+async def callbackShowLastTrainingDate(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+
+    lastDate = tr.getLastTrainingDate(callback_query.from_user.id)
+
+    lastDate = str(datetime.datetime.fromtimestamp(lastDate))
+
+    keyboard = {"inline_keyboard": []}
+    keyboard['inline_keyboard'].append([{'text': 'Удалить', 'callback_data': 'remove'}])
+    keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
+
+    await bot.edit_message_text('<b>==Дата последней тренировки==</b>\n' + str(lastDate),
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=keyboard)
+
+    await Trainings.lastTrainingDate.set()
+
+# Removing last training from the database
+async def callbackRemoveLastTrainingDate(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
+
+    tr.removeLastTrainingDate(callback_query.from_user.id)
+
+    await bot.edit_message_text('<b>==Дата последней тренировки удалена==</b>\n',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=kb.backKeyboard)
+
 def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackShowTrainingsForEdit, lambda c: c.data == 'trainEdit', state=Trainings.main)
     dp.register_callback_query_handler(callbackEditTraining, lambda c: c.data != 'back', state=Trainings.editTrainingSetName)
@@ -319,4 +363,6 @@ def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackEditTrainingRemoveExe, lambda c: c.data == 'removeExe', state=Trainings.editTraining)
     dp.register_callback_query_handler(callbackEditTrainingRemoveExeChoice, lambda c: c.data != 'back', state=Trainings.editTrainingRemoveExe)
     dp.register_callback_query_handler(callbackEditTrainingRemoveTrain, lambda c: c.data == 'removeTrain', state=Trainings.editTraining)
+    dp.register_callback_query_handler(callbackShowLastTrainingDate, lambda c: c.data == 'lastDate', state=Trainings.main)
+    dp.register_callback_query_handler(callbackRemoveLastTrainingDate, lambda c: c.data == 'remove', state=Trainings.lastTrainingDate)
     dp.register_message_handler(commandsEditTraining, state=Trainings.editTraining)

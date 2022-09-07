@@ -6,7 +6,7 @@ import datetime
 from createBot import MainMenu, bot
 from config import USERS
 
-# Start
+# Start Command
 async def commandStart(message: types.Message, state: FSMContext):
     await bot.delete_message(message.from_user.id, message.message_id)
     if message.from_user.id in USERS:
@@ -43,13 +43,14 @@ async def callbackMainMenu(callback_query: types.CallbackQuery,
         data['backKeyboards'] = []
         data['message_id'] = m.message_id
 
-# Back
+# Save current data to go back
 async def getBackData(state:  FSMContext, message):
     async with state.proxy() as data:    
         data['backStates'].append(await state.get_state())
         data['backTexts'].append(message.text)
         data['backKeyboards'].append(message.reply_markup)
 
+# Go back
 async def callbackGoBack(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)

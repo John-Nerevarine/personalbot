@@ -6,6 +6,7 @@ from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
 
+# Show existing trainings
 async def callbackShowTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -28,6 +29,7 @@ async def callbackShowTrainingsForPlay(callback_query: types.CallbackQuery,
 
     await Trainings.trainingChoice.set()
 
+# Show details about training
 async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -57,6 +59,7 @@ async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['trainingText'] = (f'<b>Тренировка</b> "{training[0]}", отдых между упражнениями {training[2]} секунд.\n' + exercisesText)
 
+# Add training to GoogleSheets and Database
 async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
