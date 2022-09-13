@@ -8,8 +8,7 @@
     2. [Автомобиль](https://github.com/John-Nerevarine/personalbot#автомобиль)
 3. [Реализация](https://github.com/John-Nerevarine/personalbot#3-реализация)
     1. [Список модулей](https://github.com/John-Nerevarine/personalbot#список-модулей)
-    2. [Скриншоты](https://github.com/John-Nerevarine/personalbot#скриншоты)
-    3. [Описание модулей](https://github.com/John-Nerevarine/personalbot#описание-модулей)
+    2. [Описание модулей](https://github.com/John-Nerevarine/personalbot#описание-модулей)
 
 
 ## 1. Цель создания.
@@ -59,9 +58,6 @@
 
 > *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
-### Скриншоты
-(будут добавлены в будущем)
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ### Описание модулей
 ### [bot.py](https://github.com/John-Nerevarine/personalbot/blob/main/bot.py)
