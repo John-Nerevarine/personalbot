@@ -2,20 +2,20 @@
 Чат-бот на Python в Telegram для автоматизации рутинных процессов.(бот в разработке)
 
 ## Оглавление
-1. [Цель создания](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#1-цель-создания)
-2. [Функционал](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#2-функционал)
-    1. [Физкультура](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#физкультура)
-    2. [Автомобиль](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#автомобиль)
-3. [Реализация](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#3-реализация)
-    1. [Список модулей](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#список-модулей)
-    2. [Скриншоты](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#скриншоты)
-    3. [Описание модулей](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#описание-модулей)
+1. [Цель создания](https://github.com/John-Nerevarine/personalbot#1-цель-создания)
+2. [Функционал](https://github.com/John-Nerevarine/personalbot#2-функционал)
+    1. [Физкультура](https://github.com/John-Nerevarine/personalbot#физкультура)
+    2. [Автомобиль](https://github.com/John-Nerevarine/personalbot#автомобиль)
+3. [Реализация](https://github.com/John-Nerevarine/personalbot#3-реализация)
+    1. [Список модулей](https://github.com/John-Nerevarine/personalbot#список-модулей)
+    2. [Скриншоты](https://github.com/John-Nerevarine/personalbot#скриншоты)
+    3. [Описание модулей](https://github.com/John-Nerevarine/personalbot#описание-модулей)
 
 
 ## 1. Цель создания.
 В повседневной жизни имею склонность собирать и систематизировать информацию о своей жизнедеятельности. В этом плане мне очень помогают Google таблицы - простота и гибкость позволяют использовать их практичести под любые задачи. Со временем у меня собралось довольно много таблиц - доходы, расходы, инвестиции, владение автомобилем, физкультура и пр. И долгое время меня всё устраивало, но со временем стало очевидно, что ввод данных в каждую таблицу может быть автоматизирован. Для этого и был создан данный чат бот.
 Бот был создан исключительно для личного использования, но тем не менее проектировался как допускающий в будущем возможность доработки под нескольких пользователей. В данный момент доступ к боту есть только у меня.
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ## 2. Функционал.
 ### Физкультура.
@@ -24,11 +24,11 @@
 Итак, я вёл Гугл таблицу, где вводил сколько подходов какого упражнения в какой день я сделал, чтобы можно видеть прогресс и планировать следующие тренировки. Это было удобно, но перед каждой тренировкой просмотр предыдущих дней, выбор упражнений, подбор весов и ввод всего этого в таблицу требовало до 10 минут, что иногда было критично, когда тренировка проходила в условиях ограниченного времени. Решено было возложить все рутинные функции на бота.
 Фукционал предусматривает сохранение упражнений, повторов и подходов, группировка упражнений в тренировки, возможность редактирования тренировок и упражнений, возможность выбора конкретной тренировки и самое главное - возможность автоматического выбора тренировки. 
 Забегая вперёд, теперь на выбор тренировки уходит не более 10 секунд, так что цель достигнута.
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ### Автомобиль.
 Данный пункт находится в разработке. Запланированно добавление в Google таблицу данных о затратах на автомобиль и вывод аналитических данных: расход на 100км, стоимость владения и пр.
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ## 3. Реализация.
 Для взаимодействия с Telegram Bot API в боте использована библиотека aiogram. Для хранения данных используется SQLite и библиотека sqlite3.
@@ -39,29 +39,29 @@
 Бот состоит из 16 модулей. Каждый модуль отвечает за определённый функционал бота.
 
 ### Список модулей:
-- **[bot.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#botpy)**
-- **[createBot.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#createbotpy)**
-- **[config.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#configpy)** *(не представлен в репозитории)*
-- **[dataBase.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#databasepy)**
-- **[keyboards.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#keyboardspy)**
-- **[support.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#supportpy)**
-- **[trainingsMenu.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsmenupy)**
-- **[mainMenu.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#mainmenupy)**
+- **[bot.py](https://github.com/John-Nerevarine/personalbot#botpy)**
+- **[createBot.py](https://github.com/John-Nerevarine/personalbot#createbotpy)**
+- **[config.py](https://github.com/John-Nerevarine/personalbot#configpy)** *(не представлен в репозитории)*
+- **[dataBase.py](https://github.com/John-Nerevarine/personalbot#databasepy)**
+- **[keyboards.py](https://github.com/John-Nerevarine/personalbot#keyboardspy)**
+- **[support.py](https://github.com/John-Nerevarine/personalbot#supportpy)**
+- **[trainingsMenu.py](https://github.com/John-Nerevarine/personalbot#trainingsmenupy)**
+- **[mainMenu.py](https://github.com/John-Nerevarine/personalbot#mainmenupy)**
 - **trainingsActions**
-    - **[__init__.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionsinitpy)**
-    - **[addExercise.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionsaddexercisepy)**
-    - **[addTraining.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionsaddtrainingpy)**
-    - **[editExercise.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionseditexercisepy)**
-    - **[editTraining.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionsedittrainingpy)**
-    - **[trainingChoise.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionstrainingchoicepy)**
-    - **[trainingDataBase.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionstrainingdatabasepy)**
-    - **[trainingQuick.py](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#trainingsactionstrainingquickpy)**
+    - **[__init__.py](https://github.com/John-Nerevarine/personalbot#trainingsactionsinitpy)**
+    - **[addExercise.py](https://github.com/John-Nerevarine/personalbot#trainingsactionsaddexercisepy)**
+    - **[addTraining.py](https://github.com/John-Nerevarine/personalbot#trainingsactionsaddtrainingpy)**
+    - **[editExercise.py](https://github.com/John-Nerevarine/personalbot#trainingsactionseditexercisepy)**
+    - **[editTraining.py](https://github.com/John-Nerevarine/personalbot#trainingsactionsedittrainingpy)**
+    - **[trainingChoise.py](https://github.com/John-Nerevarine/personalbot#trainingsactionstrainingchoicepy)**
+    - **[trainingDataBase.py](https://github.com/John-Nerevarine/personalbot#trainingsactionstrainingdatabasepy)**
+    - **[trainingQuick.py](https://github.com/John-Nerevarine/personalbot#trainingsactionstrainingquickpy)**
 
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ### Скриншоты
 (будут добавлены в будущем)
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
 
 ### Описание модулей
 ### [bot.py](https://github.com/John-Nerevarine/personalbot/blob/main/bot.py)
@@ -292,4 +292,4 @@
 |[registerHandlers(dp : Dispatcher)](https://github.com/John-Nerevarine/personalbot/blob/main/trainingsActions/trainingQuick.py#L72)|Регистрация обработчиков событий.|
 
 
-> *[Оглавление](https://github.com/John-Nerevarine/personalbot/edit/main/README.md#оглавление)*
+> *[Оглавление](https://github.com/John-Nerevarine/personalbot#оглавление)*
