@@ -80,7 +80,7 @@ async def callbackEditTrainingName(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'name'
 
-# Choosing new name for the training
+# Choosing new priority for the training
 async def callbackEditTrainingPriority(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await getBackData(state, callback_query.message)
@@ -95,7 +95,7 @@ async def callbackEditTrainingPriority(callback_query: types.CallbackQuery,
 
     await Trainings.editTrainingSetPriority.set()
 
-# Choosing new priority for the training
+# Set new priority for the training
 async def callbackEditTrainingPrioritySet(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
