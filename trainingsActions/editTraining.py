@@ -261,8 +261,8 @@ async def showEditedTrainingMessage(user_id, state: FSMContext):
 
         exercisesText = ''
         if data['exercisesInTrain']:
-            for i, v in enumerate(data['exercisesInTrain']):
-                exercisesText += str(i)+'\n'
+            for v in data['exercisesInTrain']:
+                exercisesText += v+'\n'
             keyboard['inline_keyboard'].append([{'text': 'Удалить упражнение', 'callback_data': 'removeExe'}])
         else:
             exercisesText = 'В тренировке нет упражнений.'

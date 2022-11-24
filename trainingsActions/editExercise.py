@@ -173,6 +173,9 @@ async def callbackEditExercise(callback_query: types.CallbackQuery,
             data['sets'] = data['exercises'][i][3]
             data['rest'] = data['exercises'][i][4]
             data['exeId'] = data['exercises'][i][5]
+            data['max_reps'] = data['exercises'][i][6]
+            data['add_reps'] = data['exercises'][i][7]
+            data['order'] = data['exercises'][i][8]
             data['index'] = i
             data['stage'] = 'choice'
             data['temp'] = 0
@@ -181,6 +184,9 @@ async def callbackEditExercise(callback_query: types.CallbackQuery,
         weight = data['weight']
         sets = data['sets']
         rest = data['rest']
+        add_reps = data['add_reps']
+        max_reps = data['max_reps']
+        order = data['order']
 
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
@@ -188,7 +194,10 @@ async def callbackEditExercise(callback_query: types.CallbackQuery,
         f'<b>Тип упражнения:</b> <i>{"Повторы" if exeType=="reps" else "Время"}</i>\n'+
         f'<b>Вес:</b> <i>{weight}</i>\n'+
         f'<b>Подходы:</b> <i>{sets}</i>\n'+
-        f'<b>Время отдыха между подходами:</b> <i>{rest}</i>.\n\n'+
+        f'<b>Время отдыха между подходами:</b> <i>{rest}</i>.\n'+
+        f'<b>Прирост повторов:</b> <i>{add_reps}</i>\n'+
+        f'<b>Максимум повторов:</b> <i>{max_reps}</i>\n'+
+        f'<b>Очерёдность подходов:</b> <i>{order}</i>\n\n'+
         'Что изменить?',
         callback_query.from_user.id, callback_query.message.message_id,
         reply_markup=kb.exerciseEditKeyboard)
@@ -260,6 +269,46 @@ async def callbackEditExerciseNewRest(callback_query: types.CallbackQuery,
     async with state.proxy() as data:
         data['stage'] = 'rest'
 
+### Entering new maximum reps for the exercise
+async def callbackEditExerciseNewMax(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+    await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
+        'Введите новое максимальное число повторов:',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=kb.cancelKeyboard)
+
+    async with state.proxy() as data:
+        data['stage'] = 'max_reps'
+
+### Entering new additional reps for the exercise
+async def callbackEditExerciseNewAdd(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+    await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
+        'Введите Прирост числа повторов:',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=kb.cancelKeyboard)
+
+    async with state.proxy() as data:
+        data['stage'] = 'add_reps'
+
+### Entering new reps order for the exercise
+async def callbackEditExerciseNewOrder(callback_query: types.CallbackQuery,
+                                     state: FSMContext):
+    await getBackData(state, callback_query.message)
+    await bot.answer_callback_query(callback_query.id)
+    await bot.edit_message_text('<b>==Изменить упражнение==</b>\n\n'+
+        'Введите новый порядок повторов в формате "0 1 2 3 4":',
+        callback_query.from_user.id, callback_query.message.message_id,
+        reply_markup=kb.cancelKeyboard)
+
+    async with state.proxy() as data:
+        data['stage'] = 'order'
+
+
 # Show message with edited exercise
 async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
     async with state.proxy() as data:
@@ -268,8 +317,11 @@ async def showEditedExerciseMessage(user_id, keyboard, state: FSMContext):
             f"<b>Тип упражнения:</b> <i>{'Повторы' if data['type']=='reps' else 'Время'}</i>\n"+
             f"<b>Вес:</b> <i>{data['weight']}</i>\n"+
             f"<b>Подходы:</b> <i>{data['sets']}</i>\n"+
-            f"<b>Время отдыха между подходами:</b> <i>{data['rest']}</i>.\n\n"+
-            'Что изменить?',
+            f"<b>Время отдыха между подходами:</b> <i>{data['rest']}</i>.\n"+
+            f"<b>Прирост повторов:</b> <i>{data['add_reps']}</i>\n"+
+            f"<b>Максимум повторов:</b> <i>{data['max_reps']}</i>\n"+
+            f"<b>Очерёдность подходов:</b> <i>{data['order']}</i>\n\n"+
+            "Что изменить?",
             user_id, data['message_id'],
             reply_markup=keyboard)
         data['stage'] = 'choice'
@@ -386,7 +438,34 @@ async def commandsEditExercise(message: types.Message, state: FSMContext):
         elif data['stage'] == 'rest':
             data['rest'] = tr.setsProcessing(message.text)[0]
             tr.editExercise(data['exeId'], 'rest', data['rest'])
-            data['exercises'][data['index']][4] = data['sets']
+            data['exercises'][data['index']][4] = data['rest']
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+            hasChanges = True
+
+        elif data['stage'] == 'max_reps':
+            data['max_reps'] = tr.setsProcessing(message.text)[0]
+            tr.editExercise(data['exeId'], 'max_reps', data['max_reps'])
+            data['exercises'][data['index']][6] = data['max_reps']
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+            hasChanges = True
+
+        elif data['stage'] == 'add_reps':
+            data['add_reps'] = tr.setsProcessing(message.text)[0]
+            tr.editExercise(data['exeId'], 'add_reps', data['add_reps'])
+            data['exercises'][data['index']][7] = data['add_reps']
+            data['backTexts'] = data['backTexts'][:-1]
+            data['backKeyboards'] = data['backKeyboards'][:-1]
+            data['backStates'] = data['backStates'][:-1]
+            hasChanges = True
+
+        elif data['stage'] == 'order':
+            data['order'] = json.dumps(tr.setsProcessing(message.text))
+            tr.editExercise(data['exeId'], 'add_order', data['order'])
+            data['exercises'][data['index']][8] = data['order']
             data['backTexts'] = data['backTexts'][:-1]
             data['backKeyboards'] = data['backKeyboards'][:-1]
             data['backStates'] = data['backStates'][:-1]
@@ -407,6 +486,9 @@ def registerHandlers(dp : Dispatcher):
     dp.register_callback_query_handler(callbackEditExerciseNewWeight, lambda c: c.data == 'weight', state=Trainings.editExercise)
     dp.register_callback_query_handler(callbackEditExerciseNewSets, lambda c: c.data == 'sets', state=Trainings.editExercise)
     dp.register_callback_query_handler(callbackEditExerciseNewRest, lambda c: c.data == 'rest', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewMax, lambda c: c.data == 'max', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewAdd, lambda c: c.data == 'add_reps', state=Trainings.editExercise)
+    dp.register_callback_query_handler(callbackEditExerciseNewOrder, lambda c: c.data == 'order', state=Trainings.editExercise)
     dp.register_callback_query_handler(callbackEditExerciseNewTypeSet, lambda c: c.data == 'reps', state=Trainings.editExercise)
     dp.register_callback_query_handler(callbackEditExerciseNewTypeSet, lambda c: c.data == 'time', state=Trainings.editExercise)
     dp.register_message_handler(commandsEditExercise, state=Trainings.editExercise)

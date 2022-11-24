@@ -24,7 +24,10 @@ def sqlStart ():
             weight TEXT,
             sets TEXT,
             rest INTEGER,
-            last REAL DEFAULT 1
+            last REAL DEFAULT 1,
+            max_reps INTEGER DEFAULT 50,
+            add_reps INTEGER DEFAULT 1,
+            add_order TEXT DEFAULT "[0, 1, 2, 3, 4]"
             )''')
 
         base.execute('''CREATE TABLE IF NOT EXISTS trainings_consist(

@@ -31,14 +31,22 @@ def checkExercise(user_id, name, exeType, weight):
 # Add exercise
 def addExercise(user_id, name, exeType, weight, sets, rest):
     sets = json.dumps(sets)
-    db.cur.execute('''INSERT INTO exercises
-        (user_id, name, type, weight, sets, rest)
-        VALUES(?, ?, ?, ?, ?, ?)''', (user_id, name, exeType, weight, sets, rest))
+
+    if exeType == 'reps':
+        db.cur.execute('''INSERT INTO exercises
+            (user_id, name, type, weight, sets, rest)
+            VALUES(?, ?, ?, ?, ?, ?)''', (user_id, name, exeType, weight, sets, rest))
+    else:
+        db.cur.execute('''INSERT INTO exercises
+            (user_id, name, type, weight, sets, rest, add_reps, max_reps, add_order)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            (user_id, name, exeType, weight, sets, rest, 60, 1800, "[0, 0, 0, 0, 0]"))
     db.base.commit()
 
 # Get list of exercises
 def getExerciseList(user_id):
-    db.cur.execute('''SELECT name, type, weight, sets, rest, id FROM exercises WHERE user_id = ?''', (user_id,))
+    db.cur.execute('''SELECT name, type, weight, sets, rest, id, max_reps, add_reps, add_order
+        FROM exercises WHERE user_id = ?''', (user_id,))
     exercises =  db.cur.fetchall()
     if exercises:
         for i, v in enumerate(exercises):
@@ -144,7 +152,8 @@ def removeTraining(train_id):
 
 # Get list of exercises in trainings depending on last date
 def getActualTrainingExerciseList(train_id):
-    db.cur.execute('''SELECT exercises.id, name, type, weight, sets, rest FROM exercises JOIN
+    db.cur.execute('''SELECT exercises.id, name, type, weight, sets, rest, max_reps, add_reps, add_order
+        FROM exercises JOIN
         trainings_consist ON name = exercise_name WHERE training_id = ?
         GROUP BY name HAVING last = MIN(last) ORDER BY trainings_consist.id ASC''', (train_id,))
     return db.cur.fetchall()
@@ -280,24 +289,23 @@ def playTraining(train_id, exercises_list, user):
     db.cur.execute('''INSERT INTO days (user_id, train_date)
         VALUES(?, ?)''', (user, ts))
 
-    # id, name, type, weight, sets, rest
+    # id, name, type, weight, sets, rest, max_reps, add_reps, add_order
     for v in exercises_list:
         sets = json.loads(v[4])
-        index = 0
-        minVal = sets[index]
-        for i in range(1, len(sets)):
-            if sets[i] < minVal and sets[i] != 0:
-                minVal = sets[i]
-                index = i
+        order = json.loads(v[8])
+        index = order[0]
 
-        if v[2] == 'reps':
-            sets[index] += 1
-            db.cur.execute(f'UPDATE exercises SET (sets, last) = (?, ?)WHERE id = ?',
-                (json.dumps(sets), ts, v[0]))
+        for i, _ in enumerate(order):
+            order[i] = order[(i+1) % len(order)]
+        order[-1] = index
+
+        if sets[index] + v[7] <= v[6]:
+            sets[index] += v[7]
         else:
-            sets[index] += 60
-            db.cur.execute(f'UPDATE exercises SET (sets, last) = (?, ?)WHERE id = ?',
-                (json.dumps(sets), ts, v[0]))
+            sets[index] = v[6]
+
+        db.cur.execute(f'UPDATE exercises SET (sets, last, add_order) = (?, ?, ?) WHERE id = ?',
+            (json.dumps(sets), ts, json.dumps(order), v[0]))
 
     db.base.commit()
 
@@ -330,11 +338,11 @@ def getOldestTraining(user_id, priority = None):
 
     if priorityExist:
         db.cur.execute('''SELECT exe_id, exe_name, exe_type,
-            exe_weight, exe_sets, exe_rest,
+            exe_weight, exe_sets, exe_rest, max_reps, add_reps, add_order,
             trainings.id, trainings.name, trainings.rest
             FROM
             (SELECT exercises.id as exe_id, name as exe_name, type as exe_type,
-            weight as exe_weight, sets as exe_sets, rest as exe_rest, training_id
+            weight as exe_weight, sets as exe_sets, rest as exe_rest, training_id, max_reps, add_reps, add_order
             FROM exercises JOIN trainings_consist
             ON name = exercise_name
             WHERE training_id = (SELECT id FROM trainings WHERE
@@ -348,11 +356,11 @@ def getOldestTraining(user_id, priority = None):
         
     else:
         db.cur.execute('''SELECT exe_id, exe_name, exe_type,
-            exe_weight, exe_sets, exe_rest,
+            exe_weight, exe_sets, exe_rest, max_reps, add_reps, add_order,
             trainings.id, trainings.name, trainings.rest
             FROM
             (SELECT exercises.id as exe_id, name as exe_name, type as exe_type,
-            weight as exe_weight, sets as exe_sets, rest as exe_rest, training_id
+            weight as exe_weight, sets as exe_sets, rest as exe_rest, training_id, max_reps, add_reps, add_order
             FROM exercises JOIN trainings_consist
             ON name = exercise_name
             WHERE training_id = (SELECT id FROM trainings WHERE

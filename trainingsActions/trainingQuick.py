@@ -32,7 +32,7 @@ async def callbackShowQuickTraining(callback_query: types.CallbackQuery,
         f' {v[4]} с отдыхом между подходами {v[5]} секунд, вес: {v[3]}')
 
     trainingText = (
-        f'<b>Тренировка</b> "{exercisesInTrain[0][7]}", отдых между упражнениями {exercisesInTrain[0][8]} секунд.\n'
+        f'<b>Тренировка</b> "{exercisesInTrain[0][10]}", отдых между упражнениями {exercisesInTrain[0][11]} секунд.\n'
          + exercisesText)
 
     await bot.edit_message_text('<b>==Быстрая тренировка==</b>\n\n' +
@@ -57,7 +57,7 @@ async def callbackConfirmQuickTraining(callback_query: types.CallbackQuery,
         data['backKeyboards'] = data['backKeyboards'][:-1]
         data['backStates'] = data['backStates'][:-1]
 
-    train_id = exercisesInTrain[0][6]
+    train_id = exercisesInTrain[0][9]
 
     await bot.edit_message_text('<b>==Запись в базу данных...==</b>\n',
         callback_query.from_user.id, callback_query.message.message_id)
