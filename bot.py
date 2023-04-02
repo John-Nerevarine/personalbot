@@ -1,16 +1,17 @@
 #!venv/bin/python
 
-#v1.00.00 by xx.xx.2022 @John_Nerevarine
-
 from aiogram.utils import executor
 
-import mainMenu, trainingsMenu, support
 import dataBase as db
+import mainMenu
+import support
+import trainingsMenu
 from createBot import dp
 
 
-def on_startup( ):
+def on_startup():
     db.sqlStart()
+
 
 mainMenu.registerHandlers(dp)
 trainingsMenu.registerHandlers(dp)
