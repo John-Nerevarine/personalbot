@@ -1,5 +1,5 @@
 class Exercise:
-    def __init__(self, name='Default'):
+    def __init__(self, name='Default Exercise'):
         self.id = 0
         self.name = name
         self.user_id = 0
@@ -24,4 +24,10 @@ class Exercise:
 
 
 class Training:
-    pass
+    def __init__(self, name='Default Training'):
+        self.id = 0
+        self.name = name
+        self.user_id = 0
+        self.priority = 'Обычный'
+        self.rest = 60
+        self.last = 1.0
