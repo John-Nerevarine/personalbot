@@ -1,6 +1,9 @@
 import sqlite3 as sq
+cur = None
+base = None
 
-def sqlStart ():
+
+def sqlStart():
     global base, cur
     base = sq.connect('personal.db')
     cur = base.cursor()
