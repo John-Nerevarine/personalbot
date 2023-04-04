@@ -26,9 +26,9 @@ def setsProcessing(sets):
 
 
 # Check exercise existence
-def checkExercise(user_id, name, exeType, weight):
+def checkExercise(exe):
     db.cur.execute('''SELECT name, type, weight FROM exercises WHERE
-        user_id = ? AND name = ? AND type = ? AND weight = ?''', (user_id, name, exeType, weight))
+        user_id = ? AND name = ? AND type = ? AND weight = ?''', (exe.user_id, exe.name, exe.type, exe.weight))
     if db.cur.fetchone():
         return True
     else:
@@ -36,18 +36,18 @@ def checkExercise(user_id, name, exeType, weight):
 
 
 # Add exercise
-def addExercise(user_id, name, exeType, weight, sets, rest):
-    sets = json.dumps(sets)
-
-    if exeType == 'reps':
+def addExercise(exe):
+    if exe.type == 'reps':
         db.cur.execute('''INSERT INTO exercises
             (user_id, name, type, weight, sets, rest)
-            VALUES(?, ?, ?, ?, ?, ?)''', (user_id, name, exeType, weight, sets, rest))
+            VALUES(?, ?, ?, ?, ?, ?)''', (exe.user_id, exe.name, exe.type, exe.weight,
+                                          json.dumps(exe.sets), exe.rest))
     else:
         db.cur.execute('''INSERT INTO exercises
             (user_id, name, type, weight, sets, rest, add_reps, max_reps, add_order)
             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (user_id, name, exeType, weight, sets, rest, 60, 1800, "[0, 0, 0, 0, 0]"))
+                       (exe.user_id, exe.name, exe.type, exe.weight,
+                        json.dumps(exe.sets), exe.rest, exe.add_reps, exe.max_reps, "[0, 0, 0, 0, 0]"))
     db.base.commit()
 
 
