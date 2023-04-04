@@ -88,14 +88,14 @@ def DEPRECATED_getExerciseList(user_id):
 
 
 # Check ability to remove exercise
-def getTrainsWithExercise(user_id, exercise):
+def getTrainsWithExercise(exe):
     db.cur.execute('''SELECT name FROM trainings_consist JOIN trainings on training_id = trainings.id
-        WHERE user_id = ? AND exercise_name = ?''', (user_id, exercise))
+        WHERE user_id = ? AND exercise_name = ?''', (exe.user_id, exe.name))
     inUseTrainings = db.cur.fetchall()
     if not inUseTrainings:
         return False
 
-    db.cur.execute('''SELECT id FROM exercises WHERE user_id = ? AND name = ?''', (user_id, exercise))
+    db.cur.execute('''SELECT id FROM exercises WHERE user_id = ? AND name = ?''', (exe.user_id, exe.name))
     exercisesIds = db.cur.fetchall()
     if len(exercisesIds) > 1:
         return False
@@ -104,10 +104,10 @@ def getTrainsWithExercise(user_id, exercise):
 
 
 # Remove exercise
-def removeExercise(user_id, name, exeType, weight):
+def removeExercise(exe):
     db.cur.execute('''DELETE FROM exercises
         WHERE user_id = ? AND name = ? AND type = ? AND weight = ?''',
-                   (user_id, name, exeType, weight))
+                   (exe.user_id, exe.name, exe.type, exe.weight))
     db.base.commit()
 
 
