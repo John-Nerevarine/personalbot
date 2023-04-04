@@ -148,9 +148,9 @@ def DEPRECATED_getTrainingsList(user_id):
 
 
 # Check training existence
-def isTrainingExist(user_id, name):
+def isTrainingExist(train):
     db.cur.execute('''SELECT name FROM trainings WHERE
-        user_id = ? AND name = ?''', (user_id, name))
+        user_id = ? AND name = ?''', (train.user_id, train.name))
     if db.cur.fetchone():
         return True
     else:
@@ -158,10 +158,10 @@ def isTrainingExist(user_id, name):
 
 
 # Add training
-def addTraining(user_id, name, priority, rest):
+def addTraining(train):
     db.cur.execute('''INSERT INTO trainings
         (user_id, name, priority, rest)
-        VALUES(?, ?, ?, ?)''', (user_id, name, priority, rest))
+        VALUES(?, ?, ?, ?)''', (train.user_id, train.name, train.priority, train.rest))
     db.base.commit()
 
 

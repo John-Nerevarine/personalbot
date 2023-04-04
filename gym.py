@@ -24,10 +24,10 @@ class Exercise:
 
 
 class Training:
-    def __init__(self, name='Default Training'):
+    def __init__(self, name='Default Training', user_id=0):
         self.id = 0
         self.name = name
-        self.user_id = 0
+        self.user_id = user_id
         self.priority = 'Обычный'
         self.rest = 60
         self.last = 1.0
