@@ -2,6 +2,7 @@ __pycache__
 old
 startBot
 venv
+.idea
 personal.db
 config.py
 personalbot-359113-72680c233f17.json

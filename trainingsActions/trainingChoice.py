@@ -6,9 +6,10 @@ from createBot import Trainings
 from createBot import bot
 from mainMenu import getBackData
 
+
 # Show existing trainings
 async def callbackShowTrainingsForPlay(callback_query: types.CallbackQuery,
-                                     state: FSMContext):
+                                       state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
@@ -17,54 +18,59 @@ async def callbackShowTrainingsForPlay(callback_query: types.CallbackQuery,
     keyboard = {"inline_keyboard": []}
 
     if trainings:
-        for i, v in enumerate(trainings):
-            keyboard['inline_keyboard'].append([{'text': v[0], 'callback_data': i}])
+        for i, train in enumerate(trainings):
+            keyboard['inline_keyboard'].append([{'text': train.name, 'callback_data': i}])
 
     keyboard['inline_keyboard'].append([{'text': '<< Отменить', 'callback_data': 'back'}])
 
     await bot.edit_message_text('<b>==Выберите тренировку==</b>' if trainings
-        else '<b>==Нет тренировок==</b>',
-        callback_query.from_user.id, callback_query.message.message_id,
-        reply_markup=keyboard)
+                                else '<b>==Нет тренировок==</b>',
+                                callback_query.from_user.id, callback_query.message.message_id,
+                                reply_markup=keyboard)
 
     await Trainings.trainingChoice.set()
 
+
 # Show details about training
 async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
-                                     state: FSMContext):
+                                         state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
-        data['train_id'] = data['trainings'][int(callback_query.data)][3]
-        exercisesInTrain = data['exercisesInTrain'] = tr.getActualTrainingExerciseList(data['train_id'])
-        training = data['trainings'][int(callback_query.data)]
+        train = data['train'] = data['trainings'][int(callback_query.data)]
+        # data['train_id'] = data['trainings'][int(callback_query.data)][3]
+        exercisesInTrain = data['exercisesInTrain'] = tr.getActualTrainingExerciseList(data['train'].id)
+        # training = data['trainings'][int(callback_query.data)]
 
-    if not(exercisesInTrain):
+    if not exercisesInTrain:
         await bot.edit_message_text('<b>==В тренировке нет упражнений==</b>',
-            callback_query.from_user.id, callback_query.message.message_id,
-            reply_markup=kb.backKeyboard)
+                                    callback_query.from_user.id, callback_query.message.message_id,
+                                    reply_markup=kb.backKeyboard)
         return
 
     exercisesText = ''
-    for v in exercisesInTrain:
-        exercisesText += (f'\n‣ <b>{v[1]}</b> на ' + ('повторы' if v[2] == 'reps' else 'время') +
-        f' {v[4]} с отдыхом между подходами {v[5]} секунд, вес: {v[3]}')
+    for exe in exercisesInTrain:
+        exercisesText += (f'\n‣ <b>{exe.name}</b> на ' + ('повторы' if exe.type == 'reps' else 'время') +
+                          f' {exe.sets} с отдыхом между подходами {exe.rest} секунд, вес: {exe.weight}')
 
-    await bot.edit_message_text('<b>==Запустить тренировку?==</b>\n' + 
-        f'<b>Тренировка</b> "{training[0]}", отдых между упражнениями {training[2]} секунд.\n' +
-        exercisesText,
-        callback_query.from_user.id, callback_query.message.message_id,
-        reply_markup=kb.confirmKeyboard)
+    await bot.edit_message_text('<b>==Запустить тренировку?==</b>\n' +
+                                f'<b>Тренировка</b> "{train.name}", отдых между упражнениями {train.rest} секунд.\n' +
+                                exercisesText,
+                                callback_query.from_user.id, callback_query.message.message_id,
+                                reply_markup=kb.confirmKeyboard)
 
     async with state.proxy() as data:
-        data['trainingText'] = (f'<b>Тренировка</b> "{training[0]}", отдых между упражнениями {training[2]} секунд.\n' + exercisesText)
+        data['trainingText'] = (
+                    f'<b>Тренировка</b> "{train.name}", отдых между упражнениями {train.rest} секунд.\n' +
+                    exercisesText)
+
 
 # Add training to GoogleSheets and Database
 async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
-                                     state: FSMContext):
+                                          state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
-        train_id = data['train_id']
+        train = data['train']
         exercisesInTrain = data['exercisesInTrain']
         trainingText = data['trainingText']
         data['backTexts'] = data['backTexts'][:-1]
@@ -72,16 +78,20 @@ async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
         data['backStates'] = data['backStates'][:-1]
 
     await bot.edit_message_text('<b>==Запись в базу данных...==</b>\n',
-        callback_query.from_user.id, callback_query.message.message_id)
+                                callback_query.from_user.id, callback_query.message.message_id)
 
     tr.pushDataToSheets(callback_query.from_user.id, exercisesInTrain)
-    tr.playTraining(train_id, exercisesInTrain, callback_query.from_user.id)
+    tr.playTraining(train.id, exercisesInTrain, callback_query.from_user.id)
 
     await bot.edit_message_text(f'<b>==Тренировка добавлена в таблицу==</b>\n{trainingText}',
-        callback_query.from_user.id, callback_query.message.message_id,
-        reply_markup=kb.backKeyboard)
+                                callback_query.from_user.id, callback_query.message.message_id,
+                                reply_markup=kb.backKeyboard)
 
-def registerHandlers(dp : Dispatcher):
-    dp.register_callback_query_handler(callbackShowTrainingsForPlay, lambda c: c.data == 'trainChoice', state=Trainings.main)
-    dp.register_callback_query_handler(callbackConfirmTrainingsForPlay, lambda c: c.data == 'confirm', state=Trainings.trainingChoice)
-    dp.register_callback_query_handler(callbackChoiceTrainingsForPlay, lambda c: c.data != 'back', state=Trainings.trainingChoice)
+
+def registerHandlers(dp: Dispatcher):
+    dp.register_callback_query_handler(callbackShowTrainingsForPlay, lambda c: c.data == 'trainChoice',
+                                       state=Trainings.main)
+    dp.register_callback_query_handler(callbackConfirmTrainingsForPlay, lambda c: c.data == 'confirm',
+                                       state=Trainings.trainingChoice)
+    dp.register_callback_query_handler(callbackChoiceTrainingsForPlay, lambda c: c.data != 'back',
+                                       state=Trainings.trainingChoice)
