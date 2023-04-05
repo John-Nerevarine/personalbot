@@ -14,8 +14,14 @@ class Exercise:
 
     def do_reps(self, iter_number=1):
         for _ in range(iter_number):
-            self.sets[self.add_order[0]] += self.add_reps
-            self.add_order = self.add_order[1:] + self.add_order[:1]
+            flag = 0
+            while flag < len(self.add_order):
+                if self.sets[self.add_order[0]] + self.add_reps <= self.max_reps:
+                    self.sets[self.add_order[0]] += self.add_reps
+                    flag = len(self.add_order)
+                else:
+                    flag += 1
+                self.add_order = self.add_order[1:] + self.add_order[:1]
 
     def remove_one_train(self):
         self.sets[self.add_order[-1]] -= self.add_reps

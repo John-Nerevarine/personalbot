@@ -58,30 +58,18 @@ def getExerciseList(user_id):
     exercises_raw = db.cur.fetchall()
     if exercises_raw:
         exercises = []
-        for _, v in enumerate(exercises_raw):
-            exercises.append(gym.Exercise(name=v[1]))
-            exercises[-1].id = v[0]
-            exercises[-1].user_id = v[2]
-            exercises[-1].type = v[3]
-            exercises[-1].weight = v[4]
-            exercises[-1].sets = json.loads(v[5])
-            exercises[-1].rest = v[6]
-            exercises[-1].last = v[7]
-            exercises[-1].max_reps = v[8]
-            exercises[-1].add_reps = v[9]
-            exercises[-1].add_order = json.loads(v[10])
-        return exercises
-    else:
-        return False
-
-
-def DEPRECATED_getExerciseList(user_id):
-    db.cur.execute('''SELECT name, type, weight, sets, rest, id, max_reps, add_reps, add_order
-        FROM exercises WHERE user_id = ?''', (user_id,))
-    exercises = db.cur.fetchall()
-    if exercises:
-        for i, v in enumerate(exercises):
-            exercises[i] = list(v)
+        for exe in exercises_raw:
+            exercises.append(gym.Exercise(name=exe[1]))
+            exercises[-1].id = exe[0]
+            exercises[-1].user_id = exe[2]
+            exercises[-1].type = exe[3]
+            exercises[-1].weight = exe[4]
+            exercises[-1].sets = json.loads(exe[5])
+            exercises[-1].rest = exe[6]
+            exercises[-1].last = exe[7]
+            exercises[-1].max_reps = exe[8]
+            exercises[-1].add_reps = exe[9]
+            exercises[-1].add_order = json.loads(exe[10])
         return exercises
     else:
         return False
@@ -124,30 +112,18 @@ def getTrainingsList(user_id):
     trainings_raw = db.cur.fetchall()
     if trainings_raw:
         trainings = []
-        for _, v in enumerate(trainings_raw):
-            trainings.append(gym.Training(name=v[1]))
-            trainings[-1].id = v[0]
-            trainings[-1].user_id = v[2]
-            trainings[-1].priority = v[3]
-            trainings[-1].rest = v[4]
-            trainings[-1].last = v[5]
+        for train in trainings_raw:
+            trainings.append(gym.Training(name=train[1]))
+            trainings[-1].id = train[0]
+            trainings[-1].user_id = train[2]
+            trainings[-1].priority = train[3]
+            trainings[-1].rest = train[4]
+            trainings[-1].last = train[5]
         return trainings
     else:
         return False
 
 
-def DEPRECATED_getTrainingsList(user_id):
-    db.cur.execute('''SELECT name, priority, rest, id FROM trainings WHERE user_id = ?''', (user_id,))
-    trainings = db.cur.fetchall()
-    if trainings:
-        for i, v in enumerate(trainings):
-            trainings[i] = list(v)
-        return trainings
-    else:
-        return False
-
-
-# Check training existence
 def isTrainingExist(train):
     db.cur.execute('''SELECT name FROM trainings WHERE
         user_id = ? AND name = ?''', (train.user_id, train.name))
@@ -221,18 +197,18 @@ def getActualTrainingExerciseList(train_id):
     exercises_raw = db.cur.fetchall()
     if exercises_raw:
         exercises = []
-        for _, v in enumerate(exercises_raw):
-            exercises.append(gym.Exercise(name=v[1]))
-            exercises[-1].id = v[0]
-            exercises[-1].user_id = v[2]
-            exercises[-1].type = v[3]
-            exercises[-1].weight = v[4]
-            exercises[-1].sets = json.loads(v[5])
-            exercises[-1].rest = v[6]
-            exercises[-1].last = v[7]
-            exercises[-1].max_reps = v[8]
-            exercises[-1].add_reps = v[9]
-            exercises[-1].add_order = json.loads(v[10])
+        for exe in exercises_raw:
+            exercises.append(gym.Exercise(name=exe[1]))
+            exercises[-1].id = exe[0]
+            exercises[-1].user_id = exe[2]
+            exercises[-1].type = exe[3]
+            exercises[-1].weight = exe[4]
+            exercises[-1].sets = json.loads(exe[5])
+            exercises[-1].rest = exe[6]
+            exercises[-1].last = exe[7]
+            exercises[-1].max_reps = exe[8]
+            exercises[-1].add_reps = exe[9]
+            exercises[-1].add_order = json.loads(exe[10])
         return exercises
     else:
         return False
@@ -319,15 +295,16 @@ def pushDataToSheets(user, exercises):
     # prepare data to add to table
     valueMatrix = []
     for i, exe in enumerate(exercises):
+        sets = exe.sets.copy()
         if exe.type == 'time':
             name = exe.name + ', вес: ' + exe.weight + ', на время'
-            for j, _ in enumerate(exe.sets):
-                exe.sets[j] = int(exe.sets[j] / 60 * 100) / 100
+            for j, _ in enumerate(sets):
+                sets[j] = int(sets[j] / 60 * 100) / 100
         else:
             name = exe.name + ', вес: ' + exe.weight
 
         formula = f'=SUM(C{str(startIndex + i)}:G{str(startIndex + i)})'
-        valueMatrix.append(['', name, *exe.sets, formula])
+        valueMatrix.append(['', name, *sets, formula])
     valueMatrix[0][0] = currentDay
 
     # add data to table
@@ -434,8 +411,6 @@ def getOldestTraining(user_id, priority=None):
 
             JOIN trainings ON trainings.id = training_id''',
                        (user_id, priority))
-        training = db.cur.fetchall()
-
     else:
         db.cur.execute('''SELECT exe_id, exe_name, exe_type,
             exe_weight, exe_sets, exe_rest, max_reps, add_reps, add_order,
@@ -451,5 +426,21 @@ def getOldestTraining(user_id, priority=None):
             ORDER BY trainings_consist.id ASC)
 
             JOIN trainings ON trainings.id = training_id''', (user_id, 'Особый'))
-        training = db.cur.fetchall()
-    return training
+
+    training_raw = db.cur.fetchall()
+    training = gym.Training(name=training_raw[0][10], user_id=user_id)
+    training.id = training_raw[0][9]
+    training.rest = training_raw[0][11]
+    exercises = []
+    for exe in training_raw:
+        exercises.append(gym.Exercise(name=exe[1], user_id=user_id))
+        exercises[-1].id = exe[0]
+        exercises[-1].type = exe[2]
+        exercises[-1].weight = exe[3]
+        exercises[-1].sets = json.loads(exe[4])
+        exercises[-1].rest = exe[5]
+        exercises[-1].max_reps = exe[6]
+        exercises[-1].add_reps = exe[7]
+        exercises[-1].add_order = json.loads(exe[8])
+
+    return training, exercises
