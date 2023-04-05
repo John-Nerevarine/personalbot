@@ -212,15 +212,35 @@ def removeTraining(train_id):
 
 # Get list of exercises in trainings depending on last date
 def getActualTrainingExerciseList(train_id):
-    db.cur.execute('''SELECT exercises.id, name, type, weight, sets, rest, max_reps, add_reps, add_order
+    db.cur.execute('''SELECT exercises.id, name, user_id, type, weight, sets, rest,
+        last, max_reps, add_reps, add_order
         FROM exercises JOIN
         trainings_consist ON name = exercise_name WHERE training_id = ?
         GROUP BY name HAVING last = MIN(last) ORDER BY trainings_consist.id ASC''', (train_id,))
-    return db.cur.fetchall()
+
+    exercises_raw = db.cur.fetchall()
+    if exercises_raw:
+        exercises = []
+        for _, v in enumerate(exercises_raw):
+            exercises.append(gym.Exercise(name=v[1]))
+            exercises[-1].id = v[0]
+            exercises[-1].user_id = v[2]
+            exercises[-1].type = v[3]
+            exercises[-1].weight = v[4]
+            exercises[-1].sets = json.loads(v[5])
+            exercises[-1].rest = v[6]
+            exercises[-1].last = v[7]
+            exercises[-1].max_reps = v[8]
+            exercises[-1].add_reps = v[9]
+            exercises[-1].add_order = json.loads(v[10])
+        return exercises
+    else:
+        return False
 
 
 # Insert trainings data to Google Sheets
 def pushDataToSheets(user, exercises):
+    # get date of last train
     db.cur.execute('''SELECT train_date FROM days
         WHERE user_id = ?
         GROUP BY user_id HAVING train_date = MAX(train_date)''', (user,))
@@ -238,11 +258,13 @@ def pushDataToSheets(user, exercises):
     lastMonth = datetime.datetime.fromtimestamp(last_train).month
     lastDay = datetime.datetime.fromtimestamp(last_train).day
 
+    # connect to googlesheets API
     client = pygsheets.authorize(service_account_file=GS_KEY)
     spreadsht = client.open(SPSHEET)
 
     workSheetName = f'{currentMonth}.{currentYear}'
 
+    # prepare table
     if currentYear != lastYear or currentMonth != lastMonth:
         lastDay = 0
         spreadsht.add_worksheet(workSheetName)
@@ -294,23 +316,24 @@ def pushDataToSheets(user, exercises):
     endIndex = startIndex + len(exercises) - 1
     rng = pygsheets.datarange.DataRange(start='A' + str(startIndex), end='H' + str(endIndex), worksheet=worksht)
 
-    # id, name, type, weight, sets, rest
+    # prepare data to add to table
     valueMatrix = []
-    for i, v in enumerate(exercises):
-        sets = json.loads(v[4])
-        if v[2] == 'time':
-            name = v[1] + ', вес: ' + v[3] + ', на время'
-            for j, k in enumerate(sets):
-                sets[j] = int(sets[j] / 60 * 100) / 100
+    for i, exe in enumerate(exercises):
+        if exe.type == 'time':
+            name = exe.name + ', вес: ' + exe.weight + ', на время'
+            for j, _ in enumerate(exe.sets):
+                exe.sets[j] = int(exe.sets[j] / 60 * 100) / 100
         else:
-            name = v[1] + ', вес: ' + v[3]
+            name = exe.name + ', вес: ' + exe.weight
 
         formula = f'=SUM(C{str(startIndex + i)}:G{str(startIndex + i)})'
-        valueMatrix.append(['', name, *sets, formula])
+        valueMatrix.append(['', name, *exe.sets, formula])
     valueMatrix[0][0] = currentDay
 
+    # add data to table
     rng.update_values(valueMatrix)
 
+    # format table
     modelCell.color = (1, 1, 1, 0)
     modelCell.set_text_format('bold', False)
     modelCell.set_horizontal_alignment(pygsheets.custom_types.HorizontalAlignment.CENTER)
@@ -353,24 +376,16 @@ def playTraining(train_id, exercises_list, user):
     db.cur.execute('''INSERT INTO days (user_id, train_date)
         VALUES(?, ?)''', (user, ts))
 
-    # id, name, type, weight, sets, rest, max_reps, add_reps, add_order
-    for v in exercises_list:
-        sets = json.loads(v[4])
-        order = json.loads(v[8])
-        index = order[0]
+    for exe in exercises_list:
+        exe.do_reps()
+        exe.last = ts
+        updateExerciseDynamic(exe)
 
-        for i, _ in enumerate(order):
-            order[i] = order[(i + 1) % len(order)]
-        order[-1] = index
 
-        if sets[index] + v[7] <= v[6]:
-            sets[index] += v[7]
-        else:
-            sets[index] = v[6]
-
-        db.cur.execute(f'UPDATE exercises SET (sets, last, add_order) = (?, ?, ?) WHERE id = ?',
-                       (json.dumps(sets), ts, json.dumps(order), v[0]))
-
+# Update exercise dynamic parameters
+def updateExerciseDynamic(exe):
+    db.cur.execute(f'UPDATE exercises SET (sets, last, add_order) = (?, ?, ?) WHERE id = ?',
+                   (json.dumps(exe.sets), exe.last, json.dumps(exe.add_order), exe.id))
     db.base.commit()
 
 
