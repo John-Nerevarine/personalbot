@@ -387,7 +387,7 @@ def getLastTrainingDate(user_id):
 
 
 # Remove date of last training in "days"
-def removeLastTrainingDate(user_id):
+def removeLastTraining(user_id):
     db.cur.execute('''DELETE FROM days
         WHERE user_id = ? AND train_date = (SELECT MAX(train_date) FROM days WHERE user_id = ?)''',
                    (user_id, user_id))
