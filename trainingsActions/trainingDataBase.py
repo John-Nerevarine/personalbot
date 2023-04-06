@@ -217,22 +217,15 @@ def getActualTrainingExerciseList(train_id):
 # Insert trainings data to Google Sheets
 def pushDataToSheets(user, exercises):
     # get date of last train
-    db.cur.execute('''SELECT train_date FROM days
-        WHERE user_id = ?
-        GROUP BY user_id HAVING train_date = MAX(train_date)''', (user,))
-    last_train = db.cur.fetchone()
-    if not last_train:
-        last_train = 0
-    else:
-        last_train = last_train[0]
+    last_train = getLastTraining(user)
 
     ts = time.time()
     currentYear = datetime.datetime.fromtimestamp(ts).year
     currentMonth = datetime.datetime.fromtimestamp(ts).month
     currentDay = datetime.datetime.fromtimestamp(ts).day
-    lastYear = datetime.datetime.fromtimestamp(last_train).year
-    lastMonth = datetime.datetime.fromtimestamp(last_train).month
-    lastDay = datetime.datetime.fromtimestamp(last_train).day
+    lastYear = datetime.datetime.fromtimestamp(last_train.last).year
+    lastMonth = datetime.datetime.fromtimestamp(last_train.last).month
+    lastDay = datetime.datetime.fromtimestamp(last_train.last).day
 
     # connect to googlesheets API
     client = pygsheets.authorize(service_account_file=GS_KEY)
@@ -345,13 +338,10 @@ def pushDataToSheets(user, exercises):
 
 
 # Changes in the database when trainings has been chosen
-def playTraining(train_id, exercises_list, user):
+def playTraining(train_id, exercises_list):
     ts = time.time()
     db.cur.execute(f'UPDATE trainings SET last = ? WHERE id = ?',
                    (ts, train_id))
-
-    db.cur.execute('''INSERT INTO days (user_id, train_date)
-        VALUES(?, ?)''', (user, ts))
 
     for exe in exercises_list:
         exe.do_reps()
@@ -361,32 +351,59 @@ def playTraining(train_id, exercises_list, user):
 
 # Update exercise dynamic parameters
 def updateExerciseDynamic(exe):
-    db.cur.execute(f'UPDATE exercises SET (sets, last, add_order) = (?, ?, ?) WHERE id = ?',
-                   (json.dumps(exe.sets), exe.last, json.dumps(exe.add_order), exe.id))
+    db.cur.execute(f'UPDATE exercises SET (sets, last, add_order, add_reps) = (?, ?, ?, ?) WHERE id = ?',
+                   (json.dumps(exe.sets), exe.last, json.dumps(exe.add_order), exe.add_reps, exe.id))
     db.base.commit()
 
 
-# Get timestamp of last training
-def getLastTrainingDate(user_id):
-    db.cur.execute('''SELECT train_date FROM days 
-        WHERE user_id = ?
-        GROUP BY user_id HAVING train_date = MAX(train_date)''', (user_id,))
-    ret = db.cur.fetchone()
-    if ret:
-        return ret[0]
-    else:
-        return 0
+# Get last training
+def getLastTraining(user_id):
+    db.cur.execute('''SELECT * FROM trainings 
+                    WHERE user_id = ? AND last = (
+                    SELECT last FROM trainings 
+                    GROUP BY user_id HAVING last = MAX(last))''', (user_id,))
+    raw = db.cur.fetchone()
+    train = gym.Training()
+    if raw:
+        train.id = raw[0]
+        train.name = raw[1]
+        train.user_id = raw[2]
+        train.priority = raw[3]
+        train.rest = raw[4]
+        train.last = raw[5]
+
+    return train
 
 
-# Remove date of last training in "days"
-def removeLastTraining(user_id):
-    db.cur.execute('''DELETE FROM days
-        WHERE user_id = ? AND train_date = (SELECT MAX(train_date) FROM days WHERE user_id = ?)''',
-                   (user_id, user_id))
-    db.base.commit()
+# Remove the last date training with exercises rollback
+def removeLastTraining(train):
+    db.cur.execute('''SELECT * FROM exercises WHERE last = ?''', (train.last,))
+    raw_data = db.cur.fetchall()
+    exercises = []
+    if not raw_data:
+        return
+
+    for data in raw_data:
+        exercises.append(gym.Exercise(name=data[1]))
+        exercises[-1].id = data[0]
+        exercises[-1].user_id = data[2]
+        exercises[-1].type = data[3]
+        exercises[-1].weight = data[4]
+        exercises[-1].sets = json.loads(data[5])
+        exercises[-1].rest = data[6]
+        exercises[-1].last = data[7]
+        exercises[-1].max_reps = data[8]
+        exercises[-1].add_reps = data[9]
+        exercises[-1].add_order = json.loads(data[10])
+
+    for exe in exercises:
+        exe.rollback()
+        updateExerciseDynamic(exe)
+
+    editTraining(train.id, 'last', 1.0)
 
 
-# Get oldes trainings depending on priority
+# Get the oldest trainings depending on priority
 def getOldestTraining(user_id, priority=None):
     priorityExist = False
 

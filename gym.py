@@ -13,18 +13,31 @@ class Exercise:
         self.add_order = [0, 1, 2, 3, 4]
 
     def do_reps(self, iter_number=1):
+        if self.add_reps == 0:
+            return
+
         for _ in range(iter_number):
             flag = 0
             while flag < len(self.add_order):
-                if self.sets[self.add_order[0]] + self.add_reps <= self.max_reps:
-                    self.sets[self.add_order[0]] += self.add_reps
-                    flag = len(self.add_order)
+                if self.sets[self.add_order[0]] < self.max_reps:
+                    if self.sets[self.add_order[0]] + self.add_reps <= self.max_reps:
+                        self.sets[self.add_order[0]] += self.add_reps
+                        flag = len(self.add_order) + 1
+                    else:
+                        self.sets[self.add_order[0]] = self.max_reps
+                        flag = len(self.add_order) + 1
                 else:
                     flag += 1
                 self.add_order = self.add_order[1:] + self.add_order[:1]
+            else:
+                if flag == len(self.add_order):
+                    self.add_reps = 0
 
-    def remove_one_train(self):
-        self.sets[self.add_order[-1]] -= self.add_reps
+    def rollback(self):
+        if self.sets[self.add_order[-1]] - self.add_reps >= 0:
+            self.sets[self.add_order[-1]] -= self.add_reps
+        else:
+            self.sets[self.add_order[-1]] = 0
         self.add_order = self.add_order[-1:] + self.add_order[:-1]
         self.last = 1.0
 

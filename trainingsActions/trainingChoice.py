@@ -38,9 +38,7 @@ async def callbackChoiceTrainingsForPlay(callback_query: types.CallbackQuery,
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
         train = data['train'] = data['trainings'][int(callback_query.data)]
-        # data['train_id'] = data['trainings'][int(callback_query.data)][3]
         exercisesInTrain = data['exercisesInTrain'] = tr.getActualTrainingExerciseList(data['train'].id)
-        # training = data['trainings'][int(callback_query.data)]
 
     if not exercisesInTrain:
         await bot.edit_message_text('<b>==В тренировке нет упражнений==</b>',
@@ -81,7 +79,7 @@ async def callbackConfirmTrainingsForPlay(callback_query: types.CallbackQuery,
                                 callback_query.from_user.id, callback_query.message.message_id)
 
     tr.pushDataToSheets(callback_query.from_user.id, exercisesInTrain)
-    tr.playTraining(train.id, exercisesInTrain, callback_query.from_user.id)
+    tr.playTraining(train.id, exercisesInTrain)
 
     await bot.edit_message_text(f'<b>==Тренировка добавлена в таблицу==</b>\n{trainingText}',
                                 callback_query.from_user.id, callback_query.message.message_id,
