@@ -339,9 +339,8 @@ async def callbackShowLastTrainingDate(callback_query: types.CallbackQuery,
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
 
-    lastDate = tr.getLastTrainingDate(callback_query.from_user.id)
-
-    lastDate = str(datetime.datetime.fromtimestamp(lastDate))
+    lastTrain = tr.getLastTraining(callback_query.from_user.id)
+    lastDate = str(datetime.datetime.fromtimestamp(lastTrain.last))
 
     keyboard = {"inline_keyboard": []}
     keyboard['inline_keyboard'].append([{'text': 'Удалить', 'callback_data': 'remove'}])
@@ -351,6 +350,9 @@ async def callbackShowLastTrainingDate(callback_query: types.CallbackQuery,
                                 callback_query.from_user.id, callback_query.message.message_id,
                                 reply_markup=keyboard)
 
+    async with state.proxy() as data:
+        data['train'] = lastTrain
+
     await Trainings.lastTrainingDate.set()
 
 
@@ -358,8 +360,10 @@ async def callbackShowLastTrainingDate(callback_query: types.CallbackQuery,
 async def callbackRemoveLastTraining(callback_query: types.CallbackQuery,
                                      state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
+    async with state.proxy() as data:
+        lastTrain = data['train']
 
-    tr.removeLastTraining(callback_query.from_user.id)
+    tr.removeLastTraining(lastTrain)
 
     await bot.edit_message_text('<b>==Последняя тренировка удалена==</b>\n',
                                 callback_query.from_user.id, callback_query.message.message_id,

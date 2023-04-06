@@ -13,7 +13,7 @@ async def callbackShowQuickTraining(callback_query: types.CallbackQuery,
                                     state: FSMContext):
     await getBackData(state, callback_query.message)
     await bot.answer_callback_query(callback_query.id)
-    lastTrainingDate = tr.getLastTrainingDate(callback_query.from_user.id)
+    lastTrainingDate = tr.getLastTraining(callback_query.from_user.id).last
     currentDate = time.time()
 
     if currentDate - lastTrainingDate > 604800:
@@ -65,7 +65,7 @@ async def callbackConfirmQuickTraining(callback_query: types.CallbackQuery,
                                 callback_query.from_user.id, callback_query.message.message_id)
 
     tr.pushDataToSheets(callback_query.from_user.id, exercises)
-    tr.playTraining(train.id, exercises, callback_query.from_user.id)
+    tr.playTraining(train.id, exercises)
 
     await bot.edit_message_text(f'<b>==Тренировка добавлена в таблицу==</b>\n{trainingText}',
                                 callback_query.from_user.id, callback_query.message.message_id,

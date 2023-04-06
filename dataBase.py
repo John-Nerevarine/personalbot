@@ -39,10 +39,4 @@ def sqlStart():
             exercise_name TEXT
             )''')
 
-        base.execute('''CREATE TABLE IF NOT EXISTS days(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            train_date REAL
-            )''')
-
     base.commit()
